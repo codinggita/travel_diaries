@@ -1,6 +1,5 @@
 const Journal = require("../models/Journal");
 
-// Create a journal
 const createJournal = async (req, res) => {
   const { title, content } = req.body;
 
@@ -13,7 +12,6 @@ const createJournal = async (req, res) => {
   }
 };
 
-// Get all journals for a user
 const getUserJournals = async (req, res) => {
   try {
     const journals = await Journal.find({ user: req.user.id });
@@ -23,7 +21,6 @@ const getUserJournals = async (req, res) => {
   }
 };
 
-// Get a journal by ID
 const getJournalById = async (req, res) => {
   try {
     const journal = await Journal.findById(req.params.id);
@@ -36,7 +33,6 @@ const getJournalById = async (req, res) => {
   }
 };
 
-// Update a journal
 const updateJournal = async (req, res) => {
   const { title, content } = req.body;
 
@@ -56,7 +52,6 @@ const updateJournal = async (req, res) => {
   }
 };
 
-// Delete a journal
 const deleteJournal = async (req, res) => {
   try {
     const journal = await Journal.findById(req.params.id);
