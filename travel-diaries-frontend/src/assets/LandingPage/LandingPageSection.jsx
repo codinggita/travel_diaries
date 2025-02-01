@@ -1,12 +1,14 @@
-import React from 'react'
+import React from 'react';
 import Navbar from './Parts/Navbar';
+import HeroSection from './Parts/HeroSection';
 
 const LandingPageSection = () => {
   return (
-    <div>
-        <Navbar/>
+    <div className="pt-20"> 
+      <Navbar />
+      <HeroSection />
     </div>
-  )
+  );
 };
 
 export default LandingPageSection;
