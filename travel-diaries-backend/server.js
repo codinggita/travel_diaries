@@ -1,19 +1,41 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const connectDB = require("./config/db");
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
 
 dotenv.config();
-connectDB();
-
 const app = express();
+
 app.use(express.json());
 app.use(cors());
 
-app.use("/api/v1/auth", require("./routes/authRoutes"));
-app.use("/api/v1/journals", require("./routes/journalRoutes"));
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
 
-app.get("/", (req, res) => res.send("Travel Diaries API is running."));
+// Define User Schema
+const userSchema = new mongoose.Schema({
+  username: String,
+  email: String,
+  password: String, 
+  authMethod: String,  // "email" or "google"
+  createdAt: { type: Date, default: Date.now }
+});
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const User = mongoose.model("User", userSchema);
+
+// Register User
+app.post("/api/register", async (req, res) => {
+  try {
+    const { username, email, password, authMethod } = req.body;
+    const user = new User({ username, email, password, authMethod });
+    await user.save();
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Start Server
+app.listen(5000, () => console.log("Server running on port 5000"));

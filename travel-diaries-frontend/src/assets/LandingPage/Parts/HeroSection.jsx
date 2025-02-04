@@ -42,31 +42,32 @@ const HeroSection = () => {
 
                
                 <Button
-                    onClick={() => setClicked(true)}
-                    onAnimationEnd={() => setClicked(false)} 
-                    sx={{
-                        color: "black",
-                        backgroundColor: "white",
-                        height: ["50px"],
-                        width: ["350px"],
-                        borderRadius: "20px",
-                        fontWeight: "bold",
-                        transition: "0.3s",
-                        "&:hover": { color: "#FAA41F" },
-                        position: "relative",
-                        overflow: "hidden"
-                    }}
-                >
-                    Start your first travel diary
-                    <motion.div
-                        initial={{ x: 0, opacity: 1 }}
-                        animate={clicked ? { x: 50, opacity: 0 } : { x: 0, opacity: 1 }}
-                        transition={{ duration: 0.5 }}
-                        className="ml-2"
-                    >
-                        <KeyboardArrowRightIcon />
-                    </motion.div>
-                </Button>
+          onClick={() => setClicked(true)}
+          onAnimationEnd={() => setClicked(false)}
+          sx={{
+            color: "black",
+            backgroundColor: "white",
+            height: "50px",
+            width: "350px",
+            borderRadius: "30px",
+            fontWeight: "bold",
+            transition: "0.3s ease-in-out",
+            "&:hover": { color: "#FAA41F", transform: "scale(1.05)" },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          Start your first travel diary
+          <motion.div
+            initial={{ x: 0, opacity: 1 }}
+            animate={clicked ? { x: 50, opacity: 0 } : { x: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="ml-2"
+          >
+            <KeyboardArrowRightIcon />
+          </motion.div>
+            </Button>
             </div>
 
             <div className='flex flex-col items-center justify-center relative'>
