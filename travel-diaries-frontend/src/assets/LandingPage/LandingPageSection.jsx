@@ -6,6 +6,9 @@ import Section2 from './Parts/Section2';
 import Section3 from './Parts/Section3';
 import Section4 from './Parts/Section4';
 import Section5 from './Parts/Section5';
+import Section6 from './Parts/Section6';
+import Footer from './Parts/Footer';
+
 
 
 const LandingPageSection = () => {
@@ -18,6 +21,9 @@ const LandingPageSection = () => {
       <Section3 />
       <Section4 />
       <Section5 />
+      <Section6/>
+      <Footer/>
+
 
 
 
