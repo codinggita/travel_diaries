@@ -4,4 +4,4 @@
 
 ## API Documents link: https://documenter.getpostman.com/view/39216487/2sAYQghTn7
 
-## Deployment Link: https://travel-diaries-3-k8fu.onrender.com
+## Deployment Link: https://travel-diaries-gaol.onrender.com
