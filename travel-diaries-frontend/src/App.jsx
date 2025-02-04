@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPageSection from "./assets/LandingPage/LandingPageSection";
 import AuthPage from "./assets/Authentication/components/AuthPage";
-import Footer from "./assets/LandingPage/Parts/Footer"
+import WelcomePage from './assets/Authentication/components/WelcomePage';
 
 const App = () => {
   return (
@@ -11,6 +11,8 @@ const App = () => {
       <Route path="/" element={<LandingPageSection />} />
       <Route path="/auth/register" element={<AuthPage />} />
       <Route path="/auth/login" element={<AuthPage />} />
+      <Route path="/welcomepage" element={<WelcomePage />} />
+
     </Routes>
 
   );

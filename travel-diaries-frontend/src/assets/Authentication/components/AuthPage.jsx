@@ -37,11 +37,11 @@ function AuthPage() {
         });
 
         alert("Registration successful!");
-        navigate("/"); 
+        navigate("/welcomepage"); 
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         alert("Login successful!");
-        navigate("/"); 
+        navigate("/welcomepage"); 
       }
     } catch (error) {
       alert(error.message);
@@ -62,7 +62,7 @@ function AuthPage() {
       });
 
       alert("Google login successful!");
-      navigate("/"); 
+      navigate("/LandingPageSection"); 
     } catch (error) {
       alert(error.message);
     }
