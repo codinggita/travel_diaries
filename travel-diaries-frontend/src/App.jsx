@@ -2,16 +2,16 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPageSection from "./assets/LandingPage/LandingPageSection";
 import AuthPage from "./assets/Authentication/components/AuthPage";
-import Reviews from './assets/LandingPage/Parts/Reviews';
+import Footer from "./assets/LandingPage/Parts/Footer"
 
 const App = () => {
   return (
-    <Reviews/>
-    // <Routes>
-    //   <Route path="/" element={<LandingPageSection />} />
-    //   <Route path="/auth/register" element={<AuthPage />} />
-    //   <Route path="/auth/login" element={<AuthPage />} />
-    // </Routes>
+    // <Footer/>
+    <Routes>
+      <Route path="/" element={<LandingPageSection />} />
+      <Route path="/auth/register" element={<AuthPage />} />
+      <Route path="/auth/login" element={<AuthPage />} />
+    </Routes>
 
   );
 };
