@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import LOGO from "../Images/travel-diaries-logo.png";
-import { Button, Menu, MenuItem, IconButton } from "@mui/material";
+import { Button, Menu, MenuItem, IconButton, CircularProgress } from "@mui/material";
 import { ImportContacts, FavoriteBorder, Diamond, ArrowDropDown, Menu as MenuIcon } from "@mui/icons-material";
 import MapIcon from "@mui/icons-material/Map";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [menuOpen, setMenuOpen] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [loading, setLoading] = useState(false); 
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => {
@@ -30,9 +33,20 @@ const Navbar = () => {
     setMenuOpen(event.currentTarget);
   };
 
+  const handleStartDiaryClick = () => {
+    setLoading(true);  
+    setTimeout(() => {
+      setLoading(false);  
+      navigate("/auth/register");  
+    }, 1500);  
+  };
+
+  const handleLoginClick = () => {
+    navigate("/auth/login");  
+  };
+
   return (
     <nav className="fixed top-0 left-0 w-full z-50 flex flex-row justify-between items-center px-6 py-4 bg-white shadow-md">
-
       <img src={LOGO} alt="Travel Diaries" className="h-16" />
 
       <div className="flex flex-row gap-6">
@@ -60,11 +74,15 @@ const Navbar = () => {
             <ArrowDropDown fontSize="large" />
           </IconButton>
           <Menu anchorEl={menuOpen} open={Boolean(menuOpen)} onClose={handleClose}>
-            <MenuItem onClick={handleClose} sx={{ fontWeight: "bold", color: "black" }}>
+            <MenuItem onClick={handleLoginClick} sx={{ fontWeight: "bold", color: "black" }}>
               Login
             </MenuItem>
-            <MenuItem onClick={handleClose} sx={{ fontWeight: "bold", color: "black" }}>
-              Start your Travel Diary
+            <MenuItem onClick={handleStartDiaryClick} sx={{ fontWeight: "bold", color: "black" }}>
+              {loading ? (
+                <CircularProgress size={24} sx={{ color: "#FAA41F" }} />
+              ) : (
+                "Start your Travel Diary"
+              )}
             </MenuItem>
             <MenuItem onClick={handleMenuOpen} sx={{ fontWeight: "bold", color: "black" }}>
               Language
@@ -86,6 +104,7 @@ const Navbar = () => {
       ) : (
         <div className="flex flex-row gap-1">
           <Button
+            onClick={handleLoginClick}
             sx={{
               color: "black",
               border: "3px solid black",
@@ -100,17 +119,21 @@ const Navbar = () => {
           </Button>
 
           <Button
+            onClick={handleStartDiaryClick}
             sx={{
               color: "black",
-              border: "3px solid black",
+              backgroundColor: "#FAA41F",
               borderRadius: "20px",
               fontWeight: "bold",
               px: 3,
               transition: "0.3s",
-              "&:hover": { color: "#FAA41F" },
             }}
           >
-            Start your Travel Diary
+            {loading ? (
+              <CircularProgress size={24} sx={{ color: "white" }} />
+            ) : (
+              "Start your Travel Diary"
+            )}
           </Button>
 
           <Button
