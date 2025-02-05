@@ -5,9 +5,18 @@ import BookIcon from '@mui/icons-material/Book';
 import Laptop from "../Images/laptop.jpeg";
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { motion } from "framer-motion";
+import { useNavigate } from 'react-router-dom';  
 
 const Section2 = () => {
   const [clicked, setClicked] = useState(false);
+  const navigate = useNavigate();  
+
+  const handleButtonClick = () => {
+    setClicked(true);
+    setTimeout(() => {
+      navigate("/auth/register");  
+    }, 500);  
+  };
 
   return (
     <div className='bg-[#FAA41F] rounded-lg flex flex-row w-[1400px] justify-self-center justify-between '>
@@ -36,7 +45,7 @@ const Section2 = () => {
           </div>
         </div>
         <Button
-          onClick={() => setClicked(true)}
+          onClick={handleButtonClick}  
           onAnimationEnd={() => setClicked(false)}
           sx={{
             color: "black",

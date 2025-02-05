@@ -70,7 +70,7 @@ app.get("/api/journals/:journalId", async (req, res) => {
   }
 });
 
-// Get Journals by Username (No Auth)
+// Get Journals by Username
 app.get("/api/journals/user/:username", async (req, res) => {
   try {
     const { username } = req.params;

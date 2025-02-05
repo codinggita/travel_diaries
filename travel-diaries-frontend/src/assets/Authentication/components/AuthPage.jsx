@@ -6,12 +6,15 @@ import axios from "axios";
 import logo from "../../LandingPage/Images/travel-diaries-logo-footer.png";
 import rightImage from "../../LandingPage/Images/auth-side.png";
 import { FaGoogle } from "react-icons/fa"; 
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState(""); 
   const [isRegistering, setIsRegistering] = useState(true);
+  const [showPassword, setShowPassword] = useState(false); 
   const navigate = useNavigate();
 
   const registerUserInDB = async (userData) => {
@@ -73,6 +76,11 @@ function AuthPage() {
     navigate(isRegistering ? "/auth/login" : "/auth/register");
   };
 
+ 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="flex min-h-screen justify-self-center">
       <div className="w-1/2 flex flex-col items-start justify-center justify-self-center p-12">
@@ -100,14 +108,23 @@ function AuthPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <input
-              type="password"
-              placeholder="Password"
-              className="p-2 border rounded mb-4"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative mb-4">
+              <input
+                type={showPassword ? "text" : "password"} 
+                placeholder="Password"
+                className="p-2 border rounded w-full"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2"
+                onClick={togglePasswordVisibility}
+              >
+                {showPassword ? <VisibilityOffIcon/>:<VisibilityIcon/>  }
+              </button>
+            </div>
             <button type="submit" className="bg-[#FAA41F] cursor-pointer text-white p-2 rounded-3xl mb-4">
               {isRegistering ? "Sign Up" : "Log In"}
             </button>

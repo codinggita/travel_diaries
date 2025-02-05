@@ -45,24 +45,40 @@ const Navbar = () => {
     navigate("/auth/login");  
   };
 
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
+
   return (
     <nav className="fixed top-0 left-0 w-full z-50 flex flex-row justify-between items-center px-6 py-4 bg-white shadow-md">
       <img src={LOGO} alt="Travel Diaries" className="h-16" />
 
       <div className="flex flex-row gap-6">
-        <Button sx={{ color: "black", "&:hover": { color: "#FAA41F" } }}>
+        <Button
+          sx={{ color: "black", "&:hover": { color: "#FAA41F" } }}
+          onClick={() => handleNavigate("/explore")}
+        >
           <MapIcon sx={{ color: "#FAA41F", mr: 1 }} />
           Explore
         </Button>
-        <Button sx={{ color: "black", "&:hover": { color: "#FAA41F" } }}>
+        <Button
+          sx={{ color: "black", "&:hover": { color: "#FAA41F" } }}
+          onClick={() => handleNavigate("/create")}
+        >
           <ImportContacts sx={{ color: "#FAA41F", mr: 1 }} />
           Create
         </Button>
-        <Button sx={{ color: "black", "&:hover": { color: "#FAA41F" } }}>
+        <Button
+          sx={{ color: "black", "&:hover": { color: "#FAA41F" } }}
+          onClick={() => handleNavigate("/inspire")}
+        >
           <FavoriteBorder sx={{ color: "#FAA41F", mr: 1 }} />
           Inspire
         </Button>
-        <Button sx={{ color: "black", "&:hover": { color: "#FAA41F" } }}>
+        <Button
+          sx={{ color: "black", "&:hover": { color: "#FAA41F" } }}
+          onClick={() => handleNavigate("/membership")}
+        >
           <Diamond sx={{ color: "#FAA41F", mr: 1 }} />
           Become a Member
         </Button>

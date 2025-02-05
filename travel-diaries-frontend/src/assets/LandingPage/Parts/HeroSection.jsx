@@ -6,9 +6,18 @@ import BookIcon from '@mui/icons-material/Book';
 import { Button } from "@mui/material";
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { motion } from "framer-motion";
+import { useNavigate } from 'react-router-dom';  
 
 const HeroSection = () => {
     const [clicked, setClicked] = useState(false);
+    const navigate = useNavigate();  
+
+    const handleButtonClick = () => {
+        setClicked(true);
+        setTimeout(() => {
+            navigate("/auth/register");  
+        }, 500);  
+    };
 
     return (
         <div className='bg-[#FAA41F] flex flex-row justify-between'>
@@ -40,34 +49,33 @@ const HeroSection = () => {
                     </div>
                 </div>
 
-               
                 <Button
-          onClick={() => setClicked(true)}
-          onAnimationEnd={() => setClicked(false)}
-          sx={{
-            color: "black",
-            backgroundColor: "white",
-            height: "50px",
-            width: "350px",
-            borderRadius: "30px",
-            fontWeight: "bold",
-            transition: "0.3s ease-in-out",
-            "&:hover": { color: "#FAA41F", transform: "scale(1.05)" },
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          Start your first travel diary
-          <motion.div
-            initial={{ x: 0, opacity: 1 }}
-            animate={clicked ? { x: 50, opacity: 0 } : { x: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="ml-2"
-          >
-            <KeyboardArrowRightIcon />
-          </motion.div>
-            </Button>
+                    onClick={handleButtonClick}  
+                    onAnimationEnd={() => setClicked(false)}
+                    sx={{
+                        color: "black",
+                        backgroundColor: "white",
+                        height: "50px",
+                        width: "350px",
+                        borderRadius: "30px",
+                        fontWeight: "bold",
+                        transition: "0.3s ease-in-out",
+                        "&:hover": { color: "#FAA41F", transform: "scale(1.05)" },
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    Start your first travel diary
+                    <motion.div
+                        initial={{ x: 0, opacity: 1 }}
+                        animate={clicked ? { x: 50, opacity: 0 } : { x: 0, opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="ml-2"
+                    >
+                        <KeyboardArrowRightIcon />
+                    </motion.div>
+                </Button>
             </div>
 
             <div className='flex flex-col items-center justify-center relative'>

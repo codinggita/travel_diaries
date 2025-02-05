@@ -1,6 +1,4 @@
 import React from 'react';
-import national_geographic from "../Images/national_geographic.svg";
-import boston_globe from "../Images/boston-globe.svg";
 import metro from "../Images/metro.svg";
 import emerce from "../Images/emerce.svg";
 import volksrant from "../Images/volksrant.svg";  
