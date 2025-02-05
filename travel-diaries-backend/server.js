@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
   username: String,
   email: String,
   password: String, 
-  authMethod: String,  // "email" or "google"
+  authMethod: String,  
   createdAt: { type: Date, default: Date.now }
 });
 
