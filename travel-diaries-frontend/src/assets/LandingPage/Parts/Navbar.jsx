@@ -51,7 +51,7 @@ const Navbar = () => {
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 flex flex-row justify-between items-center px-6 py-4 bg-white shadow-md">
-      <img src={LOGO} alt="Travel Diaries" className="h-16" />
+      <img src={LOGO} alt="Travel Diaries" className="h-8" />
 
       <div className="flex flex-row gap-6">
         <Button

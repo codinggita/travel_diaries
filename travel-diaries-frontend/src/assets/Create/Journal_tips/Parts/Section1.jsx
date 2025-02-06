@@ -20,12 +20,12 @@ const Section1 = () => {
   };
 
   const items = [
-    { img: one, text: "Recipe book: Create your \n own cookbook", link: "/recipe-book" },
-    { img: two, text: "Create your pregnancy \n diary or baby journal", link: "/pregnancy-diary" },
-    { img: three, text: "Best travel journal \n prompts you can use", link: "/travel-prompts" },
-    { img: four, text: "The many benefits of \n journaling", link: "/journaling-benefits" },
-    { img: five, text: "How to start a travel blog: \n A step-by-step guide", link: "/travel-blog-guide" },
-    { img: six, text: "Best travel \n apps", link: "/best-travel-apps" },
+    { img: one, text: "Recipe book: Create your \n own cookbook", link: "/create/recipe-book" },
+    { img: two, text: "Create your pregnancy \n diary or baby journal", link: "/create/pregnancy-diary" },
+    { img: three, text: "Best travel journal \n prompts you can use", link: "/create/travel-prompts" },
+    { img: four, text: "The many benefits of \n journaling", link: "/create/journaling-benefits" },
+    { img: five, text: "How to start a travel blog: \n A step-by-step guide", link: "/create/travel-blog-guide" },
+    { img: six, text: "Best travel \n apps", link: "/create/best-travel-apps" },
   ];
 
   return (
