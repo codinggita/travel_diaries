@@ -27,9 +27,8 @@ const Explore = () => {
             <h3 className="text-xl font-semibold mb-4">{continent.name}</h3>
             <div className="flex flex-wrap gap-2">
               {continent.countries.map((country) => (
-                <Link
-                  to={`/export/country/${country.toLowerCase()}`}
-                  key={country}
+                <Link to={`/explore/${country.toLowerCase()}`} key={country}
+
                   className="border px-3 py-1 rounded-full text-gray-700 hover:bg-yellow-500 hover:text-white"
                 >
                   {country}
