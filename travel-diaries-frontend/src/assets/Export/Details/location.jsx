@@ -286,7 +286,7 @@ const locations = [
           "Experience a breathtaking sunrise from the summit of Haleakalā, Maui’s dormant volcano.",
       },
       {
-        image: "https://example.com/napali.jpg",
+        image: "https://images.unsplash.com/photo-1679177618493-b366508ddc7e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8TiVDNCU4MSUyMFBhbGklMjBDb2FzdHxlbnwwfHwwfHx8MA%3D%3D",
         title: "Hike the Nā Pali Coast",
         description:
           "Explore one of the world’s most stunning coastal landscapes, featuring rugged cliffs and turquoise waters.",
@@ -300,7 +300,7 @@ const locations = [
       description:
         "Experience the vibrant culture, ancient ruins, and stunning beaches of Mexico with our ultimate travel guide.",
       buttonText: "Plan Your Trip",
-      image: "https://example.com/mexico-hero.jpg",
+      image: "https://images.unsplash.com/photo-1535159530326-d7bf54bfb24e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fG1leGljb3xlbnwwfHwwfHx8MA%3D%3D",
     },
     discover: {
       title: "Discover Mexico",
@@ -335,19 +335,19 @@ const locations = [
     ],
     activities: [
       {
-        image: "https://example.com/chichen-itza.jpg",
+        image: "https://images.unsplash.com/photo-1620636607286-087f5a7b5716?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Q2hpY2glQzMlQTluJTIwSXR6JUMzJUExfGVufDB8fDB8fHww",
         title: "Visit Chichén Itzá",
         description:
           "Explore one of the New Seven Wonders of the World, an ancient Mayan city with impressive pyramids.",
       },
       {
-        image: "https://example.com/cancun.jpg",
+        image: "https://images.unsplash.com/photo-1552074284-5e88ef1aef18?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fENhbmMlQzMlQkFufGVufDB8fDB8fHww",
         title: "Relax in Cancún",
         description:
           "Enjoy white sandy beaches, crystal-clear waters, and vibrant nightlife in Mexico’s top beach destination.",
       },
       {
-        image: "https://example.com/cdmx.jpg",
+        image: "https://images.unsplash.com/photo-1601585144584-2a53183be14c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8bWV4aWNvJTIwY2l0eXxlbnwwfHwwfHx8MA%3D%3D",
         title: "Explore Mexico City",
         description:
           "Discover the capital’s rich history, world-class museums, and incredible street food scene.",
@@ -361,7 +361,7 @@ const locations = [
       description:
         "Discover the rich history, stunning landscapes, and vibrant culture of Guatemala, the heart of the Maya civilization.",
       buttonText: "Plan Your Trip",
-      image: "https://example.com/guatemala-hero.jpg",
+      image: "https://plus.unsplash.com/premium_photo-1697730089767-45e915ef27f9?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8Z3VhdGVtYWxhfGVufDB8fDB8fHww",
     },
     discover: {
       title: "Discover Guatemala",
@@ -396,19 +396,19 @@ const locations = [
     ],
     activities: [
       {
-        image: "https://example.com/tikal.jpg",
+        image: "https://images.unsplash.com/photo-1681686588086-2ac0253adb1a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHRpa2FsJTIwbmF0aW9uYWwlMjBwYXJrfGVufDB8fDB8fHww",
         title: "Explore Tikal National Park",
         description:
           "Visit the awe-inspiring ruins of an ancient Mayan city, surrounded by dense jungle and wildlife.",
       },
       {
-        image: "https://example.com/antigua.jpg",
+        image: "https://images.unsplash.com/photo-1582300857444-5ddd87c86797?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8QW50aWd1YXxlbnwwfHwwfHx8MA%3D%3D",
         title: "Wander through Antigua",
         description:
           "Discover the charming colonial streets, historic churches, and vibrant markets of this UNESCO World Heritage city.",
       },
       {
-        image: "https://example.com/atitlan.jpg",
+        image: "https://plus.unsplash.com/premium_photo-1734415032007-132def8e56dc?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8TGFrZSUyMEF0aXRsJUMzJUExbnxlbnwwfHwwfHx8MA%3D%3D",
         title: "Relax at Lake Atitlán",
         description:
           "Enjoy the breathtaking scenery of Lake Atitlán, surrounded by volcanoes and traditional Mayan villages.",
@@ -422,7 +422,7 @@ const locations = [
       description:
         "Explore Tunisia’s rich history, stunning Mediterranean beaches, and unique desert landscapes.",
       buttonText: "Plan Your Trip",
-      image: "https://example.com/tunisia-hero.jpg",
+      image: "https://images.unsplash.com/photo-1556901599-6cd86f3da8b1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8dHVuaXNpYXxlbnwwfHwwfHx8MA%3D%3D",
     },
     discover: {
       title: "Discover Tunisia",
@@ -457,19 +457,19 @@ const locations = [
     ],
     activities: [
       {
-        image: "https://example.com/carthage.jpg",
+        image: "https://images.unsplash.com/photo-1728361328876-74e396d3defc?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cnVpbnMlMjBvZiUyMENhcnRoYWdlfGVufDB8fDB8fHww",
         title: "Explore the ruins of Carthage",
         description:
           "Discover the ancient ruins of Carthage, once a powerful city of the Phoenician and Roman empires.",
       },
       {
-        image: "https://example.com/sahara.jpg",
+        image: "https://plus.unsplash.com/premium_photo-1661963573455-ba0446e2cab9?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8U2FoYXJhJTIwRGVzZXJ0fGVufDB8fDB8fHww",
         title: "Experience the Sahara Desert",
         description:
           "Take a camel ride or 4x4 tour through the vast golden dunes of the Tunisian Sahara.",
       },
       {
-        image: "https://example.com/sidi-bou-said.jpg",
+        image: "https://images.unsplash.com/photo-1594495293394-d1073510bf22?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8U2lkaSUyMEJvdSUyMFNhaWR8ZW58MHx8MHx8fDA%3D",
         title: "Visit Sidi Bou Said",
         description:
           "Wander through the picturesque blue-and-white village overlooking the Mediterranean Sea.",
@@ -483,7 +483,7 @@ const locations = [
       description:
         "Escape to Zanzibar, an island paradise with white sandy beaches, turquoise waters, and rich cultural heritage.",
       buttonText: "Plan Your Trip",
-      image: "https://example.com/zanzibar-hero.jpg",
+      image: "https://images.unsplash.com/photo-1549035092-33b2937b075a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8emFuemliYXJ8ZW58MHx8MHx8fDA%3D",
     },
     discover: {
       title: "Discover Zanzibar",
@@ -518,19 +518,19 @@ const locations = [
     ],
     activities: [
       {
-        image: "https://example.com/stone-town.jpg",
+        image: "https://plus.unsplash.com/premium_photo-1661962749027-9d226b798fe5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8U3RvbmUlMjBUb3dufGVufDB8fDB8fHww",
         title: "Explore Stone Town",
         description:
           "Walk through the narrow streets of this UNESCO-listed town, discovering its historical sites and vibrant markets.",
       },
       {
-        image: "https://example.com/nungwi.jpg",
+        image: "https://plus.unsplash.com/premium_photo-1679541668015-8906c2cd6bc2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8TnVuZ3dpJTIwQmVhY2h8ZW58MHx8MHx8fDA%3D",
         title: "Relax on Nungwi Beach",
         description:
           "Enjoy the crystal-clear waters, white sandy beaches, and stunning sunsets of Zanzibar’s most famous beach.",
       },
       {
-        image: "https://example.com/spice-tour.jpg",
+        image: "https://images.unsplash.com/photo-1547531455-c20b677ded4b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8U3BpY2UlMjBUb3VyJTIwemFuemliYXJ8ZW58MHx8MHx8fDA%3D",
         title: "Take a Spice Tour",
         description:
           "Visit Zanzibar’s spice farms and learn about the island’s long-standing trade in exotic spices.",
@@ -544,7 +544,7 @@ const locations = [
       description:
         "Journey through Egypt’s timeless wonders, from the iconic pyramids to the tranquil Nile River.",
       buttonText: "Plan Your Trip",
-      image: "https://example.com/egypt-hero.jpg",
+      image: "https://plus.unsplash.com/premium_photo-1661891622579-bee76e28c304?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZWd5cHR8ZW58MHx8MHx8fDA%3D",
     },
     discover: {
       title: "Discover Egypt",
@@ -579,19 +579,19 @@ const locations = [
     ],
     activities: [
       {
-        image: "https://example.com/pyramids.jpg",
+        image: "https://images.unsplash.com/photo-1582729704907-f07a96126069?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fFB5cmFtaWRzJTIwb2YlMjBHaXphfGVufDB8fDB8fHww",
         title: "Visit the Pyramids of Giza",
         description:
           "Marvel at the last remaining wonder of the ancient world, including the Great Sphinx and the majestic pyramids.",
       },
       {
-        image: "https://example.com/nile-cruise.jpg",
+        image: "https://images.unsplash.com/photo-1519852476561-ec618b0183ba?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8TmlsZSUyMFJpdmVyfGVufDB8fDB8fHww",
         title: "Cruise the Nile River",
         description:
           "Sail along the world’s longest river, stopping at historic temples and enjoying stunning views.",
       },
       {
-        image: "https://example.com/red-sea.jpg",
+        image: "https://images.unsplash.com/photo-1581059288064-ec3f1ab22e3f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8UmVkJTIwU2VhfGVufDB8fDB8fHww",
         title: "Dive into the Red Sea",
         description:
           "Experience world-class diving and snorkeling in the crystal-clear waters of the Red Sea, home to vibrant coral reefs and marine life.",
@@ -605,7 +605,7 @@ const locations = [
       description:
         "Embark on an unforgettable adventure in Tanzania, home to stunning wildlife, Mount Kilimanjaro, and pristine beaches.",
       buttonText: "Plan Your Trip",
-      image: "https://example.com/tanzania-hero.jpg",
+      image: "https://images.unsplash.com/photo-1589177900326-900782f88a55?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8VGFuemFuaWF8ZW58MHx8MHx8fDA%3D",
     },
     discover: {
       title: "Discover Tanzania",
@@ -640,19 +640,19 @@ const locations = [
     ],
     activities: [
       {
-        image: "https://example.com/serengeti.jpg",
+        image: "https://images.unsplash.com/photo-1664270762247-cf3c56ec49f9?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fFNlcmVuZ2V0aSUyME1pZ3JhdGlvbnxlbnwwfHwwfHx8MA%3D%3D",
         title: "Experience the Serengeti Migration",
         description:
           "Witness millions of wildebeest and zebras crossing the plains in one of nature’s most spectacular events.",
       },
       {
-        image: "https://example.com/kilimanjaro.jpg",
+        image: "https://images.unsplash.com/photo-1518729571365-9a891a9df2bd?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         title: "Climb Mount Kilimanjaro",
         description:
           "Take on Africa’s highest peak and enjoy breathtaking views from the summit.",
       },
       {
-        image: "https://example.com/ngorongoro.jpg",
+        image: "https://images.unsplash.com/photo-1516494982030-fda424f96b59?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Tmdvcm9uZ29ybyUyMENyYXRlcnxlbnwwfHwwfHx8MA%3D%3D",
         title: "Explore the Ngorongoro Crater",
         description:
           "Visit this UNESCO World Heritage Site, a natural wildlife haven with stunning scenery and abundant animals.",
@@ -666,7 +666,7 @@ const locations = [
       description:
         "Discover the tropical paradise of Mauritius, with its crystal-clear waters, lush landscapes, and rich cultural heritage.",
       buttonText: "Plan Your Trip",
-      image: "https://example.com/mauritius-hero.jpg",
+      image: "https://images.unsplash.com/photo-1513415277900-a62401e19be4?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8TWF1cml0aXVzfGVufDB8fDB8fHww",
     },
     discover: {
       title: "Discover Mauritius",
@@ -701,19 +701,19 @@ const locations = [
     ],
     activities: [
       {
-        image: "https://example.com/le-morne.jpg",
+        image: "https://images.unsplash.com/photo-1607280123432-d26c4edabdd4?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8TW9ybmUlMjBCcmFiYW50fGVufDB8fDB8fHww",
         title: "Hike Le Morne Brabant",
         description:
           "Enjoy a scenic hike to the top of this UNESCO-listed mountain with stunning coastal views.",
       },
       {
-        image: "https://example.com/underwater-waterfall.jpg",
+        image: "https://images.unsplash.com/photo-1482685945432-29a7abf2f466?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fFVuZGVyd2F0ZXIlMjBXYXRlcmZhbGwlMjBpbGx1c2lvbiUyMGluJTIwTWF1cml0aXVzfGVufDB8fDB8fHww",
         title: "See the Underwater Waterfall illusion",
         description:
           "Experience one of the most breathtaking optical illusions in the Indian Ocean, best viewed from a helicopter.",
       },
       {
-        image: "https://example.com/ile-aux-cerfs.jpg",
+        image: "https://plus.unsplash.com/premium_photo-1677533796282-b42a8a27dce0?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8JUMzJThFbGUlMjBhdXglMjBDZXJmc3xlbnwwfHwwfHx8MA%3D%3D",
         title: "Relax on Île aux Cerfs",
         description:
           "Visit this stunning island with white sandy beaches, turquoise lagoons, and exciting water activities.",
@@ -727,7 +727,7 @@ const locations = [
       description:
         "Discover the volcanic landscapes, lush forests, and stunning beaches of Réunion Island, a paradise in the Indian Ocean.",
       buttonText: "Plan Your Trip",
-      image: "https://example.com/reunion-island-hero.jpg",
+      image: "https://images.unsplash.com/photo-1580910727537-e4c80c6a6a29?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8UiVDMyVBOXVuaW9uJTIwSXNsYW5kfGVufDB8fDB8fHww",
     },
     discover: {
       title: "Discover Réunion Island",
@@ -762,19 +762,19 @@ const locations = [
     ],
     activities: [
       {
-        image: "https://example.com/piton-de-la-fournaise.jpg",
+        image: "https://images.unsplash.com/photo-1675407639184-bbd8a12b923f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8UGl0b24lMjBkZSUyMGxhJTIwRm91cm5haXNlfGVufDB8fDB8fHww",
         title: "Hike to Piton de la Fournaise",
         description:
           "Explore one of the world’s most active volcanoes, offering breathtaking landscapes and thrilling hikes.",
       },
       {
-        image: "https://example.com/cirque-de-mafate.jpg",
+        image: "https://images.unsplash.com/photo-1698625704696-fe1aea52e0ee?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Q2lycXVlJTIwZGUlMjBNYWZhdGV8ZW58MHx8MHx8fDA%3D",
         title: "Discover Cirque de Mafate",
         description:
           "A remote mountainous region accessible only by foot or helicopter, perfect for hiking enthusiasts.",
       },
       {
-        image: "https://example.com/reunion-beach.jpg",
+        image: "https://images.unsplash.com/photo-1605477162733-1842ddfbae16?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fFIlQzMlQTl1bmlvbiVFMiU4MCU5OXMlMjBCZWFjaGVzfGVufDB8fDB8fHww",
         title: "Relax on Réunion’s Beaches",
         description:
           "Enjoy the island’s beautiful beaches, from black volcanic sands to turquoise lagoons ideal for snorkeling and diving.",
@@ -788,7 +788,7 @@ const locations = [
       description:
         "Explore South Africa’s stunning landscapes, vibrant cities, and rich wildlife, from Cape Town to Kruger National Park.",
       buttonText: "Plan Your Trip",
-      image: "https://example.com/south-africa-hero.jpg",
+      image: "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fFNvdXRoJTIwQWZyaWNhfGVufDB8fDB8fHww",
     },
     discover: {
       title: "Discover South Africa",
@@ -823,19 +823,19 @@ const locations = [
     ],
     activities: [
       {
-        image: "https://example.com/table-mountain.jpg",
+        image: "https://images.unsplash.com/photo-1591303872989-2640dc28185b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8VGFibGUlMjBNb3VudGFpbnxlbnwwfHwwfHx8MA%3D%3D",
         title: "Hike or Cable Car to Table Mountain",
         description:
           "Enjoy panoramic views of Cape Town from the top of this world-famous mountain.",
       },
       {
-        image: "https://example.com/kruger-safari.jpg",
+        image: "https://images.unsplash.com/photo-1586943353950-95bdbe3207a1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8S3J1Z2VyJTIwTmF0aW9uYWwlMjBQYXJrfGVufDB8fDB8fHww",
         title: "Go on a Safari in Kruger National Park",
         description:
           "Experience an unforgettable safari and spot the Big Five in one of Africa’s top wildlife reserves.",
       },
       {
-        image: "https://example.com/garden-route.jpg",
+        image: "https://images.unsplash.com/photo-1619111711036-d5a46ebecf8f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8R2FyZGVuJTIwUm91dGV8ZW58MHx8MHx8fDA%3D",
         title: "Drive the Garden Route",
         description:
           "Take a scenic road trip along the breathtaking coastline, with stops at charming towns and nature reserves.",
