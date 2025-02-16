@@ -21,7 +21,7 @@
     "firebase-admin": "^13.0.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.6",
-    "node-fetch": "^3.3.1" // You'll need this for the proxy
+    "node-fetch": "^3.3.1" 
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
