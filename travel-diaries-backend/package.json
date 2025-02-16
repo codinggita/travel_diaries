@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start-all": "concurrently \"node server.js\" \"node index.js\" \"node country.js\" \"node proxy.js\""
+    "start-all": "npx concurrently \"node server.js\" \"node index.js\" \"node country.js\" \"node proxy.js\""
   },
   "dependencies": {
     "axios": "^1.7.9",
