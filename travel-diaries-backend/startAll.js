@@ -34,7 +34,7 @@ app.get('/api/countries', async (req, res) => {
 
 app.get('/api/countries/id', async (req, res) => {
   try {
-    const country = await Country.findById(req.params.id);
+    const country = await Country.findById(id);
     if (!country) {
       return res.status(404).json({ message: 'Country not found' });
     }
