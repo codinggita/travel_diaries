@@ -1,11 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import locations from "./location";
-import { Card, CardContent, CardHeader } from "@mui/material";
+import { Card, CardContent, CardHeader, Button, CircularProgress } from "@mui/material";
 import { IconContext } from "react-icons";
 import { FaCalendarAlt, FaBus, FaLeaf, FaLanguage } from "react-icons/fa";
-import { Button } from "@mui/material";
 import Navbar from "../../LandingPage/Parts/Navbar";
 import Footer from "../../LandingPage/Parts/Footer";
 
@@ -18,7 +16,32 @@ const iconMapping = {
 
 export default function TravelInspiration() {
   const { location: locationId } = useParams();
-  const location = locations.find((loc) => loc.id === locationId);
+  const [location, setLocation] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLocation = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/countries/:id`);
+        const data = await response.json();
+        setLocation(data);
+      } catch (error) {
+        console.error("Failed to fetch location data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchLocation();
+  }, [locationId]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <CircularProgress />
+      </div>
+    );
+  }
 
   if (!location) {
     return (
@@ -33,7 +56,7 @@ export default function TravelInspiration() {
     <div className="font-sans">
       <Navbar />
 
-      {/* Hero Section - Animated */}
+      {/* Hero Section */}
       <motion.section
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -42,7 +65,7 @@ export default function TravelInspiration() {
         style={{ backgroundImage: `url('${location.hero.image}')` }}
       >
         <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
-          <motion.h1 
+          <motion.h1
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 1, delay: 0.3 }}
@@ -50,7 +73,7 @@ export default function TravelInspiration() {
           >
             {location.hero.title}
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 1, delay: 0.5 }}
@@ -58,15 +81,12 @@ export default function TravelInspiration() {
           >
             {location.hero.description}
           </motion.p>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.7 }}
           >
-            <Button
-              variant="contained"
-              className="mt-6 bg-yellow-500 hover:bg-yellow-600 text-lg rounded-lg"
-            >
+            <Button variant="contained" className="mt-6 bg-yellow-500 hover:bg-yellow-600 text-lg rounded-lg">
               {location.hero.buttonText}
             </Button>
           </motion.div>
@@ -75,22 +95,16 @@ export default function TravelInspiration() {
 
       {/* Discover Section */}
       <section className="py-16 px-6 md:px-20">
-        <h2 className="text-3xl font-bold text-center">
-          {location.discover.title}
-        </h2>
-        <p className="text-lg mt-6 text-gray-700 text-center max-w-4xl mx-auto">
-          {location.discover.description}
-        </p>
+        <h2 className="text-3xl font-bold text-center">{location.discover.title}</h2>
+        <p className="text-lg mt-6 text-gray-700 text-center max-w-4xl mx-auto">{location.discover.description}</p>
       </section>
 
-      {/* Info Cards - Animated */}
+      {/* Info Cards */}
       <section className="py-16 px-6 md:px-20 bg-gray-100">
-        <h3 className="text-2xl font-bold mb-10 text-center">
-          Essential Information
-        </h3>
+        <h3 className="text-2xl font-bold mb-10 text-center">Essential Information</h3>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {location.infoCards.map((info, index) => (
-            <motion.div 
+            <motion.div
               key={index}
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
@@ -113,14 +127,12 @@ export default function TravelInspiration() {
         </div>
       </section>
 
-      {/* Activities Section - Grid Layout with Hover Animation */}
+      {/* Activities Section */}
       <section className="py-16 px-6 md:px-20">
-        <h3 className="text-2xl font-bold mb-10 text-center">
-          Activities to Try
-        </h3>
+        <h3 className="text-2xl font-bold mb-10 text-center">Activities to Try</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {location.activities.map((activity, index) => (
-            <motion.div 
+            <motion.div
               key={index}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -132,7 +144,7 @@ export default function TravelInspiration() {
                 alt={activity.title}
                 className="w-full h-64 object-cover transition-transform group-hover:scale-105"
               />
-              <motion.div 
+              <motion.div
                 className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-center p-4"
                 initial={{ opacity: 0 }}
                 whileHover={{ opacity: 1 }}
