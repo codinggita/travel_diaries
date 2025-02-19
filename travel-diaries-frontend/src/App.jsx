@@ -14,6 +14,7 @@ import JournalingBenefits from './assets/Create/Journal_tips/Parts/JournalingBen
 import TravelBlogGuide from './assets/Create/Journal_tips/Parts/TravelBlogGuide';
 import BestTravelApps from './assets/Create/Journal_tips/Parts/BestTravelApps';
 import TravelInspiration from './assets/Export/Details/TravelInspiration';
+import Dashboard from "./assets/make_journal/main"
 
 const App = () => {
   return (
@@ -34,6 +35,8 @@ const App = () => {
         <Route path="/create/travel-blog-guide" element={<TravelBlogGuide />} />
         <Route path="/create/best-travel-apps" element={<BestTravelApps />} />
         <Route path="/explore/:location" element={<TravelInspiration />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+
       </Routes>
     
   );
