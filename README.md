@@ -7,29 +7,29 @@
 
 **Travel Diaries is a digital platform designed to help travelers seamlessly store, organize, and share their travel stories and experiences. It addresses the common challenges travelers face when documenting their journeys by offering the following solutions:**
 
-### Key Features & Solutions:
-#### Personal Travel Journals:
+## Key Features & Solutions:
+### Personal Travel Journals:
 **Travelers can create their own virtual travel diaries to document every trip with text, photos, videos, and even voice notes.**
 
-#### Cloud Storage:
+### Cloud Storage:
 **Stories and memories are securely stored online, ensuring travelers never lose their experiences due to lost devices or physical journals.**
 
-#### Organized & Accessible:
+### Organized & Accessible:
 **Entries can be categorized by date, location, and trip, making it easy to revisit and relive past journeys anytime.**
 
-#### Inspiration Hub:
+### Inspiration Hub:
 **Users can explore travel stories shared by others (if made public), gaining inspiration and insights for their future travels.**
 
-#### Find Travel Buddies:
+### Find Travel Buddies:
 **Solo travelers can connect with like-minded individuals to plan and embark on trips together.**
 
-#### Trip Planning Assistance:
+### Trip Planning Assistance:
 **The platform offers travel guides, itineraries, and local recommendations based on user-generated experiences.**
 
-#### Health & Safety Prescriptions:
+### Health & Safety Prescriptions:
 **Travelers receive health advice and essential travel tips based on their destination, ensuring a safer journey.**
 
-#### AI-Enhanced Journal Designer:(Future Aspects)
+### AI-Enhanced Journal Designer:(Future Aspects)
 **An AI-powered feature assists in crafting well-structured, beautifully designed journals, helping travelers enhance their storytelling with ease.**
 
 #### Print Option:(Future Aspects)
