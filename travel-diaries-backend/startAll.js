@@ -32,6 +32,19 @@ app.get('/api/countries', async (req, res) => {
   res.json(data);
 });
 
+app.get('/api/countries/:id', async (req, res) => {
+  try {
+    const country = await Country.findById(req.params.id);
+    if (!country) {
+      return res.status(404).json({ message: 'Country not found' });
+    }
+    res.json(country);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+
 app.post('/api/countries', async (req, res) => {
   const newData = new Country(req.body);
   await newData.save();
