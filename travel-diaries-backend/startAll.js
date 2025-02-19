@@ -32,7 +32,7 @@ app.get('/api/countries', async (req, res) => {
   res.json(data);
 });
 
-app.get('/api/countries/id', async (req, res) => {
+app.get('/api/countries/:id', async (req, res) => {
   try {
     const country = await Country.findById(id);
     if (!country) {
