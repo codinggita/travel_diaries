@@ -1,8 +1,14 @@
 import { Button } from '@mui/material';
 import { FaPlus } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const DashboardPage = () => {
+  const navigate = useNavigate();
+
+  const handleStartDiary = () => {
+    navigate('/dashboard/start-diary');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-between">
       {/* Navbar */}
@@ -21,7 +27,10 @@ const DashboardPage = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex justify-center items-center">
-        <div className="bg-white p-6 rounded-2xl shadow-lg text-center w-64">
+        <div
+          className="bg-white p-6 rounded-2xl shadow-lg text-center w-64 cursor-pointer hover:shadow-xl transition"
+          onClick={handleStartDiary}
+        >
           <div className="flex justify-center items-center bg-orange-400 text-white rounded-full w-16 h-16 mx-auto">
             <FaPlus size={24} />
           </div>

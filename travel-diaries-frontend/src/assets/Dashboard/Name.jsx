@@ -3,13 +3,14 @@ import { Button, TextField, CircularProgress, Checkbox, FormControlLabel, Chip }
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
 import Navbar from '../LandingPage/Parts/Navbar';
 import Fontselect from './Fontselect';
+import dayjs from 'dayjs';
 import axios from 'axios';
 
 const CreateJournalPage = () => {
   const [journalTitle, setJournalTitle] = useState('');
+  const [prompt, setPrompt] = useState('');
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [countryInput, setCountryInput] = useState('');
@@ -17,8 +18,8 @@ const CreateJournalPage = () => {
   const [notTravelRelated, setNotTravelRelated] = useState(false);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [confirmed, setConfirmed] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [datesConfirmed, setDatesConfirmed] = useState(false);
   const [error, setError] = useState(null);
 
   const handleNext = async () => {
@@ -26,6 +27,10 @@ const CreateJournalPage = () => {
     setError(null);
 
     try {
+      if (step === 1) {
+        setPrompt(journalTitle);
+      }
+
       if (step === 2 && notTravelRelated) {
         await submitData();
         setIsFinished(true);
@@ -69,14 +74,17 @@ const CreateJournalPage = () => {
   const submitData = async () => {
     const data = {
       journalTitle,
+      prompt,
       countries,
       notTravelRelated,
       startDate: startDate ? startDate.toISOString() : null,
       endDate: endDate ? endDate.toISOString() : null,
     };
 
-    await axios.post('http://localhost:5000/api/journals', data);
+    await axios.post('https://travel-diaries-t6c5.onrender.com/api/journals', data);
   };
+
+  const confirmDates = () => setDatesConfirmed(true);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -99,12 +107,7 @@ const CreateJournalPage = () => {
                   placeholder="Enter journal title"
                   InputProps={{
                     disableUnderline: true,
-                    style: {
-                      fontSize: '3rem',
-                      textAlign: 'center',
-                      fontWeight: 300,
-                      color: journalTitle ? 'black' : '#9ca3af',
-                    },
+                    style: { fontSize: '3rem', textAlign: 'center', fontWeight: 300, color: journalTitle ? 'black' : '#9ca3af' },
                   }}
                   value={journalTitle}
                   onChange={(e) => setJournalTitle(e.target.value)}
@@ -123,22 +126,14 @@ const CreateJournalPage = () => {
                       key={country}
                       label={country}
                       onDelete={() => handleDeleteCountry(country)}
-                      sx={{ fontSize: '1.25rem', padding: '8px 12px', borderColor: '#FAA41F' }}
+                      sx={{ fontSize: '1.25rem', padding: '8px 12px', borderColor: '#FAA41F', backgroundColor: '#FFF7E6', color: '#333' }}
                     />
                   ))}
                 </div>
                 <TextField
                   variant="standard"
                   placeholder="Add more..."
-                  InputProps={{
-                    disableUnderline: true,
-                    style: {
-                      fontSize: '3rem',
-                      textAlign: 'center',
-                      fontWeight: 300,
-                      color: countryInput ? 'black' : '#9ca3af',
-                    },
-                  }}
+                  InputProps={{ disableUnderline: true, style: { fontSize: '3rem', textAlign: 'center', fontWeight: 300, color: countryInput ? 'black' : '#9ca3af' } }}
                   value={countryInput}
                   onChange={(e) => setCountryInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddCountry()}
@@ -146,7 +141,7 @@ const CreateJournalPage = () => {
                   sx={{ maxWidth: '600px', '& input': { textAlign: 'center' } }}
                 />
                 <FormControlLabel
-                  control={<Checkbox checked={notTravelRelated} onChange={(e) => setNotTravelRelated(e.target.checked)} />}
+                  control={<Checkbox checked={notTravelRelated} onChange={(e) => setNotTravelRelated(e.target.checked)} sx={{ color: '#FAA41F', '&.Mui-checked': { color: '#FAA41F' } }} />}
                   label="This diary is not related to travelling"
                   className="mt-4"
                 />
@@ -158,10 +153,11 @@ const CreateJournalPage = () => {
                 <h3 className="text-lg mb-4">Add your travel dates</h3>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <div className="flex flex-col gap-4 items-center">
-                    <DatePicker label="Start Date" value={startDate} onChange={(newValue) => setStartDate(newValue)} />
-                    <DatePicker label="End Date" value={endDate} onChange={(newValue) => setEndDate(newValue)} />
+                    <DatePicker label="Start Date" value={startDate} onChange={setStartDate} />
+                    <DatePicker label="End Date" value={endDate} onChange={setEndDate} />
                   </div>
                 </LocalizationProvider>
+                <Button variant="contained" onClick={confirmDates} sx={{ mt: 2, backgroundColor: '#FAA41F', '&:hover': { backgroundColor: '#e0911b' } }}>Confirm Dates</Button>
               </>
             )}
           </>
@@ -170,14 +166,10 @@ const CreateJournalPage = () => {
 
       {!isFinished && (
         <div className="bg-white py-4 border-t flex items-center justify-between px-4">
-          <div>{notTravelRelated && step === 2 ? '2 of 2' : `${step} of 3`}</div>
+          <div>{`${step} of 3`}</div>
           <div className="flex gap-2">
-            <Button variant="outlined" onClick={handleBack} disabled={step === 1}>Back</Button>
-            {step === 3 ? (
-              <Button variant="contained" onClick={handleFinish} disabled={!startDate || !endDate}>Finish</Button>
-            ) : (
-              <Button variant="contained" onClick={handleNext} disabled={step === 1 && !journalTitle.trim()}>Next</Button>
-            )}
+            <Button variant="outlined" onClick={handleBack} disabled={step === 1} sx={{ color: '#FAA41F', borderColor: '#FAA41F' }}>Back</Button>
+            <Button variant="contained" onClick={step === 3 ? handleFinish : handleNext} sx={{ backgroundColor: '#FAA41F', '&:hover': { backgroundColor: '#e0911b' } }}>{step === 3 ? 'Finish' : 'Next'}</Button>
           </div>
         </div>
       )}
