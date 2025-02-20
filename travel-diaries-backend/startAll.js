@@ -47,7 +47,6 @@ app.get('/api/countries/:id', async (req, res) => {
   }
 });
 
-
 app.post('/api/countries', async (req, res) => {
   const newData = new Country(req.body);
   await newData.save();
@@ -72,9 +71,11 @@ app.delete('/api/countries/:id', async (req, res) => {
 // ---------------- JOURNAL MODEL ----------------
 const journalSchema = new mongoose.Schema({
   journalId: { type: String, unique: true, default: uuidv4 },
-  title: String,
-  content: String,
-  username: String,
+  journalTitle: String,
+  countries: [String],
+  notTravelRelated: Boolean,
+  startDate: Date,
+  endDate: Date,
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -82,8 +83,7 @@ const Journal = mongoose.model('Journal', journalSchema);
 
 app.post('/api/journals', async (req, res) => {
   try {
-    const { title, content, username } = req.body;
-    const journal = new Journal({ title, content, username });
+    const journal = new Journal(req.body);
     await journal.save();
     res.status(201).json({ message: 'Journal created successfully', journal });
   } catch (error) {
@@ -103,21 +103,10 @@ app.get('/api/journals/:journalId', async (req, res) => {
   res.json(journal);
 });
 
-app.get('/api/journals/user/:username', async (req, res) => {
-  const { username } = req.params;
-  const journals = await Journal.find({ username });
-  if (!journals.length) return res.status(404).json({ error: 'No journals found for this username' });
-  res.json(journals);
-});
-
 app.put('/api/journals/:journalId', async (req, res) => {
   const { journalId } = req.params;
-  const { title, content } = req.body;
-  const updatedJournal = await Journal.findOneAndUpdate(
-    { journalId },
-    { title, content },
-    { new: true }
-  );
+  const updates = req.body;
+  const updatedJournal = await Journal.findOneAndUpdate({ journalId }, updates, { new: true });
   if (!updatedJournal) return res.status(404).json({ error: 'Journal not found' });
   res.json({ message: 'Journal updated successfully', updatedJournal });
 });

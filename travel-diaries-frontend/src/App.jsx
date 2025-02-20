@@ -16,6 +16,8 @@ import React from 'react';
 // import TravelInspiration from './assets/Export/Details/TravelInspiration';
 // import Dashboard from './assets/Dashboard/Dashboard';
 import Fontselect from './assets/Dashboard/Fontselect';
+import Name from './assets/Dashboard/Name';
+
 
 const App = () => {
   return (
@@ -40,7 +42,8 @@ const App = () => {
 
 
       // </Routes>
-      <Fontselect/>
+      <Name />
+      // <Fontselect/>
     
   );
 };
