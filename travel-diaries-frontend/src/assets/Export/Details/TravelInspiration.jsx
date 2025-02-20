@@ -20,9 +20,11 @@ export default function TravelInspiration() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!locationId) return;
+  
     const fetchLocation = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/countries/:id`);
+        const response = await fetch(`https://travel-diaries-t6c5.onrender.com/api/countries/${locationId}`);
         const data = await response.json();
         setLocation(data);
       } catch (error) {
@@ -34,7 +36,7 @@ export default function TravelInspiration() {
   
     fetchLocation();
   }, [locationId]);
-
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -86,9 +88,7 @@ export default function TravelInspiration() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.7 }}
           >
-            <Button variant="contained" className="mt-6 bg-yellow-500 hover:bg-yellow-600 text-lg rounded-lg">
-              {location.hero.buttonText}
-            </Button>
+            
           </motion.div>
         </div>
       </motion.section>
