@@ -13,7 +13,7 @@ import Footer from './Parts/Footer';
 
 const LandingPageSection = () => {
   return (
-    <div className="pt-20"> 
+    <div className="pt-18"> 
       <Navbar />
       <HeroSection />
       <Section1 />
