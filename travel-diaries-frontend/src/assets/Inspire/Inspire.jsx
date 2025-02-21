@@ -1,54 +1,147 @@
-// import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
-// import { Card, CardContent } from '@/components/ui/card';
+import { Select, MenuItem } from "@mui/material";
+import { FaRegCalendarAlt } from "react-icons/fa";
+import { MdLocationOn } from "react-icons/md";
+import { IoBookOutline } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 
-export default function TravelersCommunityPage() {
+const diaries = [
+  {
+    title: "Persreis naar Albanië",
+    date: "15 t/m 17 april 2024",
+    location: "Albania",
+    chapters: 7,
+    image: "https://images.pexels.com/photos/7084090/pexels-photo-7084090.jpeg?auto=compress&cs=tinysrgb&w=600",
+    path: "/inspire/albania",
+  },
+  {
+    title: "Gma's & Gpa's Great Adventures",
+    date: "2024",
+    location: "New Zealand",
+    chapters: 43,
+    image: "https://source.unsplash.com/600x400/?newzealand,adventure",
+    path: "/inspire/newzealand",
+  },
+  {
+    title: "Sabbatical Journey",
+    date: "April 12, 2023 - June 10, 2023",
+    location: "Egypt",
+    chapters: 33,
+    image: "https://source.unsplash.com/600x400/?egypt,desert",
+    path: "/inspire/egypt",
+  },
+  {
+    title: "Great Adventure",
+    location: "Italy",
+    chapters: 13,
+    image: "https://source.unsplash.com/600x400/?italy,mountains",
+    path: "/inspire/italy",
+  },
+  {
+    title: "EUROPE 2017",
+    location: "Portugal",
+    chapters: 11,
+    image: "https://source.unsplash.com/600x400/?portugal,landscape",
+    path: "/inspire/portugal",
+  },
+  {
+    title: "Erin & Matt in the UK",
+    location: "United Kingdom",
+    chapters: 15,
+    image: "https://source.unsplash.com/600x400/?uk,travel",
+    path: "/inspire/uk",
+  },
+];
+
+const TravelPage = () => {
+  const navigate = useNavigate();
+
+  const handleDiaryClick = (path) => {
+    navigate(path);
+  };
+
   return (
-    <div className="bg-white text-black">
-      <header className="bg-orange-500 text-white p-4 flex justify-between items-center">
-        <div className="font-bold text-lg">Travelers Community</div>
-        <div className="space-x-4">
-          <Button variant="outline">Login</Button>
-          <Button variant="default">Start your first diary</Button>
+    <div>
+      {/* Hero Section */}
+      <section className="flex flex-col lg:flex-row items-center bg-[#FAA41F] text-black min-h-screen">
+        {/* Left Section */}
+        <div className="w-full lg:w-1/2 p-10 lg:p-20">
+          <h1 className="text-7xl font-bold mb-6">Travelers community</h1>
+          <p className="text-lg mb-6">
+            Join a vibrant community of travelers sharing their adventures! Seek
+            inspiration and connect with fellow explorers. Whether you're a
+            seasoned traveler, a weekend adventurer, or planning your next trip,
+            our community is here to inspire you!
+          </p>
+          <div className="relative">
+            <Select
+              displayEmpty
+              className="w-full lg:w-80 border border-black rounded-full bg-white px-4 py-2"
+              defaultValue=""
+            >
+              <MenuItem value="">Search by country</MenuItem>
+              <MenuItem value="USA">India</MenuItem>
+              <MenuItem value="Canada">Canada</MenuItem>
+              <MenuItem value="France">France</MenuItem>
+            </Select>
+          </div>
         </div>
-      </header>
 
-      <section className="flex bg-orange-100 p-8">
-        <div className="w-1/2">
-          <h1 className="text-4xl font-bold mb-4">Travelers Community</h1>
-          <p className="text-lg mb-4">Join a vibrant community of travelers sharing their adventures. Seek inspiration, and connect with fellow explorers.</p>
-          <Input placeholder="Search by country" className="w-full" />
+        {/* Right Section */}
+        <div className="w-full lg:w-1/2">
+          <img
+            src="https://images.unsplash.com/photo-1625690987114-86f5af994b49?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b2xkJTIwY291cGxlfGVufDB8fDB8fHww"
+            alt="Travelers"
+            className="w-200 h-185 object-cover"
+          />
         </div>
-        <div className="w-1/2 bg-cover bg-center" style={{ backgroundImage: 'url(/path/to/image.jpg)' }}></div>
       </section>
 
-      <section className="text-center my-8">
-        <h2 className="text-2xl font-bold mb-4">Check out the latest diaries</h2>
-        <div className="grid grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((item) => (
-            <Card key={item}>
-              <CardContent className="h-40 bg-gray-300 flex items-center justify-center">
-                Diary {item}
-              </CardContent>
-            </Card>
+      {/* Latest Diaries Section */}
+      <section className="p-10">
+        <h2 className="text-4xl font-bold text-center mb-10">
+          Check out the latest diaries
+        </h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {diaries.map((diary, index) => (
+            <div
+              key={index}
+              className="relative rounded-2xl overflow-hidden shadow-lg cursor-pointer"
+              onClick={() => handleDiaryClick(diary.path)}
+            >
+              {/* Background Image */}
+              <img
+                src={diary.image}
+                alt={diary.title}
+                className="w-full h-56 object-cover"
+              />
+              
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-black bg-opacity-40 p-4 flex flex-col justify-end text-white">
+                <h3 className="text-lg font-semibold">{diary.title}</h3>
+
+                <div className="flex items-center gap-2 mt-2 text-sm">
+                  {diary.date && (
+                    <span className="flex items-center gap-1">
+                      <FaRegCalendarAlt />
+                      {diary.date}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <MdLocationOn />
+                    {diary.location}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <IoBookOutline />
+                    {diary.chapters} chapters
+                  </span>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
-        <Button variant="secondary" className="mt-4">See more diaries</Button>
       </section>
-
-      <section className="bg-orange-100 p-8 rounded-md my-8">
-        <h3 className="text-xl font-bold mb-2">Join the community!</h3>
-        <p className="mb-4">Capture every detail of your travels, gain personal impact, and share your adventures with a lively, kind, and curious traveler network.</p>
-        <Button variant="default">Create your account</Button>
-      </section>
-
-      <footer className="bg-gray-200 p-4 text-center">
-        <p>&copy; 2025 TravelersCommunity. All rights reserved.</p>
-        <div className="mt-2 space-x-4">
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
-        </div>
-      </footer>
     </div>
   );
-}
+};
+
+export default TravelPage;
