@@ -77,64 +77,70 @@ const journalSchema = new mongoose.Schema({
   startDate: Date,
   endDate: Date,
   createdAt: { type: Date, default: Date.now },
+  images: [String], // Array of images (base64 encoded)
+  content: String,   // Content of the chapter
 });
 
-const Journal = mongoose.model('Journal', journalSchema);
+const Journal = mongoose.model("Journal", journalSchema);
 
-app.post('/api/journals', async (req, res) => {
+// Connect to MongoDB
+mongoose.connect("mongodb://localhost:27017/diaryApp", { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Routes
+app.post("/api/journals", async (req, res) => {
   try {
-    const journal = new Journal(req.body);
+    const { journalTitle, startDate, endDate, images, content } = req.body;
+    const journal = new Journal({
+      journalTitle,
+      startDate,
+      endDate,
+      images,
+      content,
+    });
     await journal.save();
-    res.status(201).json({ message: 'Journal created successfully', journal });
+    res.status(201).json({ message: "Journal created successfully", journal });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.get('/api/journals', async (req, res) => {
+app.get("/api/journals", async (req, res) => {
   const journals = await Journal.find();
   res.json(journals);
 });
 
-app.get('/api/journals/:journalId', async (req, res) => {
+app.get("/api/journals/:journalId", async (req, res) => {
   const { journalId } = req.params;
   const journal = await Journal.findOne({ journalId });
-  if (!journal) return res.status(404).json({ error: 'Journal not found' });
+  if (!journal) return res.status(404).json({ error: "Journal not found" });
   res.json(journal);
 });
 
-app.put('/api/journals/:journalId', async (req, res) => {
+app.put("/api/journals/:journalId", async (req, res) => {
   const { journalId } = req.params;
-  const updates = req.body;
-  const updatedJournal = await Journal.findOneAndUpdate({ journalId }, updates, { new: true });
-  if (!updatedJournal) return res.status(404).json({ error: 'Journal not found' });
-  res.json({ message: 'Journal updated successfully', updatedJournal });
+  const { journalTitle, startDate, endDate, images, content } = req.body;
+
+  try {
+    const updatedJournal = await Journal.findOneAndUpdate(
+      { journalId },
+      { journalTitle, startDate, endDate, images, content },
+      { new: true }
+    );
+    if (!updatedJournal) return res.status(404).json({ error: "Journal not found" });
+    res.json({ message: "Journal updated successfully", updatedJournal });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-app.delete('/api/journals/:journalId', async (req, res) => {
+app.delete("/api/journals/:journalId", async (req, res) => {
   const { journalId } = req.params;
   const deletedJournal = await Journal.findOneAndDelete({ journalId });
-  if (!deletedJournal) return res.status(404).json({ error: 'Journal not found' });
-  res.json({ message: 'Journal deleted successfully' });
+  if (!deletedJournal) return res.status(404).json({ error: "Journal not found" });
+  res.json({ message: "Journal deleted successfully" });
 });
 
-// ---------------- USER MODEL ----------------
-const userSchema = new mongoose.Schema({
-  username: String,
-  email: String,
-  password: String,
-  authMethod: String,
-  createdAt: { type: Date, default: Date.now },
-});
 
-const User = mongoose.model('User', userSchema);
-
-app.post('/api/register', async (req, res) => {
-  const { username, email, password, authMethod } = req.body;
-  const user = new User({ username, email, password, authMethod });
-  await user.save();
-  res.status(201).json({ message: 'User registered successfully' });
-});
 
 // ---------------- PROXY ROUTE ----------------
 app.get('/proxy', async (req, res) => {
@@ -148,6 +154,19 @@ app.get('/proxy', async (req, res) => {
   } catch (error) {
     res.status(500).send(`Error fetching the URL: ${error.message}`);
   }
+});
+
+// ------------------Message-------------------
+app.post("/contact", (req, res) => {
+  const { name, email, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  console.log("New Contact Message:", { name, email, message });
+
+  res.status(200).json({ success: "Message received successfully" });
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

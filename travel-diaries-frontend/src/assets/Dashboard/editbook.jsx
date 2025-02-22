@@ -2,10 +2,11 @@ import { useState, useCallback } from "react";
 import Cropper from "react-easy-crop";
 import { TextField, IconButton, Card, CardContent, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, Slider } from "@mui/material";
 import { MdDelete, MdAdd, MdEdit } from "react-icons/md";
+import axios from 'axios';
 
 export default function DiaryPage() {
   const [chapters, setChapters] = useState([
-    { id: 1, title: "New chapter", date: "2025-02-20", content: "Write your thoughts here..." }
+    { id: 1, title: "New chapter", date: "2025-02-20", content: "Write your thoughts here...", images: [] }
   ]);
   const [selectedChapter, setSelectedChapter] = useState(chapters[0]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -15,33 +16,46 @@ export default function DiaryPage() {
   const [zoom, setZoom] = useState(1);
   const [croppedImage, setCroppedImage] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  
+
   const [editTitle, setEditTitle] = useState(selectedChapter.title);
   const [editDate, setEditDate] = useState(selectedChapter.date);
 
-  const handleEdit = (field, value) => {
+  const handleEdit = async (field, value) => {
     setSelectedChapter((prev) => ({ ...prev, [field]: value }));
     setChapters(
       chapters.map((chapter) =>
         chapter.id === selectedChapter.id ? { ...chapter, [field]: value } : chapter
       )
     );
+
+    // Save to backend after editing title/date
+    const updatedChapter = { ...selectedChapter, [field]: value };
+    await updateChapterInBackend(updatedChapter);
   };
 
-  const handleAdd = () => {
-    const newChapter = { id: Date.now(), title: "New Chapter", date: new Date().toISOString().split('T')[0], content: "Write your thoughts here..." };
-    setChapters([...chapters, newChapter]);
-    setSelectedChapter(newChapter);
+  const handleAdd = async () => {
+    const newChapter = { id: Date.now(), title: "New Chapter", date: new Date().toISOString().split('T')[0], content: "Write your thoughts here...", images: imageSlots };
+
+    try {
+      const response = await axios.post('/api/journals', newChapter);
+      setChapters([...chapters, response.data.journal]);
+      setSelectedChapter(response.data.journal);
+    } catch (error) {
+      console.error("Error adding chapter:", error);
+    }
   };
 
-  const handleImageUpload = (event, slotIndex) => {
+  const handleImageUpload = async (event, slotIndex) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         setCroppedImage(e.target.result);
         setIsCropping(true);
         setSelectedSlot(slotIndex);
+
+        // Once cropping is done, save the image
+        await saveCroppedImage();
       };
       reader.readAsDataURL(file);
     }
@@ -51,13 +65,26 @@ export default function DiaryPage() {
     console.log(croppedArea, croppedAreaPixels);
   }, []);
 
-  const saveCroppedImage = () => {
-    setImageSlots((prevSlots) => {
-      const updatedSlots = [...prevSlots];
-      updatedSlots[selectedSlot] = croppedImage;
-      return updatedSlots;
-    });
+  const saveCroppedImage = async () => {
+    const updatedImageSlots = [...imageSlots];
+    updatedImageSlots[selectedSlot] = croppedImage;
+
+    setImageSlots(updatedImageSlots);
     setIsCropping(false);
+
+    const updatedChapter = { ...selectedChapter, images: updatedImageSlots };
+
+    // Save the updated chapter to backend
+    await updateChapterInBackend(updatedChapter);
+  };
+
+  const updateChapterInBackend = async (updatedChapter) => {
+    try {
+      const response = await axios.put(`/api/journals/${selectedChapter.id}`, updatedChapter);
+      setSelectedChapter(response.data.updatedJournal);
+    } catch (error) {
+      console.error("Error saving chapter:", error);
+    }
   };
 
   const handleTitleDateChange = () => {

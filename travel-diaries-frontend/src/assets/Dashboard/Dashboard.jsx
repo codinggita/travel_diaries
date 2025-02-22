@@ -1,7 +1,7 @@
-import { Button } from '@mui/material';
+
 import { FaPlus } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
-
+import Navbar from '../compo/newNav';
 const DashboardPage = () => {
   const navigate = useNavigate();
 
@@ -12,21 +12,10 @@ const DashboardPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-between">
       {/* Navbar */}
-      <nav className="flex justify-between items-center p-4 bg-white shadow-md">
-        <div className="text-2xl font-bold text-orange-500">Travel DIARIES</div>
-        <div className="flex items-center gap-4">
-          <Link to="/how-it-works" className="text-gray-700">How Travel Diaries works?</Link>
-          <Link to="/pricing" className="text-gray-700">Pricing</Link>
-          <Link to="/upgrade" className="text-gray-700">Upgrade to premium</Link>
-          <Button variant="outlined">Logout</Button>
-          <Button variant="contained" color="warning">Create diary</Button>
-          <span className="cursor-pointer">🛒</span>
-          <span className="cursor-pointer">⚙️</span>
-        </div>
-      </nav>
+      <Navbar/>
 
       {/* Main Content */}
-      <div className="flex-1 flex justify-center items-center">
+      <div className="flex-1 flex justify-center items-center h-full">
         <div
           className="bg-white p-6 rounded-2xl shadow-lg text-center w-64 cursor-pointer hover:shadow-xl transition"
           onClick={handleStartDiary}

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import LOGO from "../Images/travel-diaries-logo.png";
+import LOGO from "./travel-diaries-logo.png";
 import { Button, Menu, MenuItem, IconButton, CircularProgress } from "@mui/material";
-import { ImportContacts, FavoriteBorder, Diamond, ArrowDropDown, Menu as MenuIcon } from "@mui/icons-material";
+import { ImportContacts, FavoriteBorder, Diamond, ArrowDropDown, ShoppingCart } from "@mui/icons-material";
+import { FaCog } from "react-icons/fa"; // React icon for settings
 import MapIcon from "@mui/icons-material/Map";
 import { useNavigate } from "react-router-dom";
 
@@ -18,7 +19,7 @@ const Navbar = () => {
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, []); 
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -33,16 +34,10 @@ const Navbar = () => {
     setMenuOpen(event.currentTarget);
   };
 
-  const handleStartDiaryClick = () => {
-    setLoading(true);  
-    setTimeout(() => {
-      setLoading(false);  
-      navigate("/auth/register");  
-    }, 1500);  
-  };
-
-  const handleLoginClick = () => {
-    navigate("/auth/login");  
+  const handleLogoutClick = () => {
+    // Implement logout logic here
+    console.log("Logging out...");
+    navigate("/auth/login");
   };
 
   const handleNavigate = (path) => {
@@ -90,37 +85,23 @@ const Navbar = () => {
             <ArrowDropDown fontSize="large" />
           </IconButton>
           <Menu anchorEl={menuOpen} open={Boolean(menuOpen)} onClose={handleClose}>
-            {/* <MenuItem onClick={handleLoginClick} sx={{ fontWeight: "bold", color: "black" }}>
-              Login
-            </MenuItem> */}
-            {/* <MenuItem onClick={handleStartDiaryClick} sx={{ fontWeight: "bold", color: "black" }}>
-              {loading ? (
-                <CircularProgress size={24} sx={{ color: "#FAA41F" }} />
-              ) : (
-                "Start your Travel Diary"
-              )}
-            </MenuItem> */}
-            <MenuItem onClick={handleMenuOpen} sx={{ fontWeight: "bold", color: "black" }}>
-              Language
+            <MenuItem onClick={handleLogoutClick} sx={{ fontWeight: "bold", color: "black" }}>
+              Logout
             </MenuItem>
-          </Menu>
-
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-            <MenuItem onClick={handleClose} sx={{ color: "#FAA41F" }}>
-              English
+            <MenuItem onClick={() => handleNavigate("/cart")} sx={{ fontWeight: "bold", color: "black" }}>
+              <ShoppingCart sx={{ color: "#FAA41F", mr: 1 }} />
+              Cart
             </MenuItem>
-            <MenuItem onClick={handleClose} sx={{ color: "#FAA41F" }}>
-              Spanish
-            </MenuItem>
-            <MenuItem onClick={handleClose} sx={{ color: "#FAA41F" }}>
-              French
+            <MenuItem onClick={() => handleNavigate("/settings")} sx={{ fontWeight: "bold", color: "black" }}>
+              <FaCog style={{ color: "#FAA41F", marginRight: "8px" }} />
+              Settings
             </MenuItem>
           </Menu>
         </div>
       ) : (
         <div className="flex flex-row gap-1">
-          {/* <Button
-            onClick={handleLoginClick}
+          <Button
+            onClick={handleLogoutClick}
             sx={{
               color: "black",
               border: "3px solid black",
@@ -131,11 +112,11 @@ const Navbar = () => {
               "&:hover": { color: "#FAA41F" },
             }}
           >
-            Login
-          </Button> */}
+            Logout
+          </Button>
 
           <Button
-            onClick={handleStartDiaryClick}
+            onClick={() => handleNavigate("/cart")}
             sx={{
               color: "black",
               backgroundColor: "#FAA41F",
@@ -145,15 +126,12 @@ const Navbar = () => {
               transition: "0.3s",
             }}
           >
-            {loading ? (
-              <CircularProgress size={24} sx={{ color: "white" }} />
-            ) : (
-              "Start your Travel Diary"
-            )}
+            <ShoppingCart sx={{ color: "white", mr: 1 }} />
+            Cart
           </Button>
 
           <Button
-            onClick={handleMenuOpen}
+            onClick={() => handleNavigate("/settings")}
             sx={{
               color: "black",
               border: "3px solid black",
@@ -164,26 +142,9 @@ const Navbar = () => {
               "&:hover": { color: "#FAA41F" },
             }}
           >
-            EN
+            <FaCog style={{ color: "#FAA41F", marginRight: "8px" }} />
+            Settings
           </Button>
-
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-            anchorOrigin={{ vertical: "top", horizontal: "right" }}
-            transformOrigin={{ vertical: "top", horizontal: "right" }}
-          >
-            <MenuItem onClick={handleClose} sx={{ color: "#FAA41F" }}>
-              English
-            </MenuItem>
-            <MenuItem onClick={handleClose} sx={{ color: "#FAA41F" }}>
-              Spanish
-            </MenuItem>
-            <MenuItem onClick={handleClose} sx={{ color: "#FAA41F" }}>
-              French
-            </MenuItem>
-          </Menu>
         </div>
       )}
     </nav>
