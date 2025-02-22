@@ -83,10 +83,6 @@ const journalSchema = new mongoose.Schema({
 
 const Journal = mongoose.model("Journal", journalSchema);
 
-// Connect to MongoDB
-mongoose.connect("mongodb://localhost:27017/diaryApp", { useNewUrlParser: true, useUnifiedTopology: true });
-
-// Routes
 app.post("/api/journals", async (req, res) => {
   try {
     const { journalTitle, startDate, endDate, images, content } = req.body;
@@ -140,33 +136,54 @@ app.delete("/api/journals/:journalId", async (req, res) => {
   res.json({ message: "Journal deleted successfully" });
 });
 
-
-
 // ---------------- PROXY ROUTE ----------------
-app.get('/proxy', async (req, res) => {
+app.get('/api/proxy', async (req, res) => {
   const targetURL = req.query.url;
-  if (!targetURL) return res.status(400).send('URL is required');
+  if (!targetURL) return res.status(400).json({ error: 'URL is required' });
 
   try {
     const response = await fetch(targetURL);
     const data = await response.text();
     res.send(data);
   } catch (error) {
-    res.status(500).send(`Error fetching the URL: ${error.message}`);
+    res.status(500).json({ error: `Error fetching URL: ${error.message}` });
   }
 });
 
-// ------------------Message-------------------
-app.post("/contact", (req, res) => {
+// ---------------- MESSAGE MODEL & CONTACT ROUTE ----------------
+const messageSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  message: String,
+  createdAt: { type: Date, default: Date.now },
+});
+
+const Message = mongoose.model("Message", messageSchema);
+
+app.post("/api/contact", async (req, res) => {
   const { name, email, message } = req.body;
 
   if (!name || !email || !message) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
-  console.log("New Contact Message:", { name, email, message });
+  try {
+    const newMessage = new Message({ name, email, message });
+    await newMessage.save();
 
-  res.status(200).json({ success: "Message received successfully" });
+    res.status(201).json({ success: "Message received successfully", data: newMessage });
+  } catch (error) {
+    res.status(500).json({ error: "Server error", message: error.message });
+  }
+});
+
+app.get("/api/messages", async (req, res) => {
+  try {
+    const messages = await Message.find();
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: "Server error", message: error.message });
+  }
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
