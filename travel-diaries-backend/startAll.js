@@ -1,9 +1,9 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import fetch from 'node-fetch';
-import { v4 as uuidv4 } from 'uuid';
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+import fetch from "node-fetch";
+import { v4 as uuidv4 } from "uuid";
 
 dotenv.config();
 const app = express();
@@ -12,11 +12,12 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+mongoose
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.log(err));
 
-// ---------------- COUNTRY MODEL ----------------
+/* ---------------- COUNTRY MODEL ---------------- */
 const countrySchema = new mongoose.Schema({
   id: String,
   hero: { title: String, description: String, buttonText: String, image: String },
@@ -25,50 +26,50 @@ const countrySchema = new mongoose.Schema({
   activities: [{ image: String, title: String, description: String }],
 });
 
-const Country = mongoose.model('Country', countrySchema);
+const Country = mongoose.model("Country", countrySchema);
 
-app.get('/api/countries', async (req, res) => {
+app.get("/api/countries", async (req, res) => {
   const data = await Country.find();
   res.json(data);
 });
 
-app.get('/api/countries/:id', async (req, res) => {
+app.get("/api/countries/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const country = await Country.findOne({ id });
 
     if (!country) {
-      return res.status(404).json({ message: 'Country not found' });
+      return res.status(404).json({ message: "Country not found" });
     }
 
     res.json(country);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
-app.post('/api/countries', async (req, res) => {
+app.post("/api/countries", async (req, res) => {
   const newData = new Country(req.body);
   await newData.save();
-  res.status(201).json({ message: 'New country data added successfully', data: newData });
+  res.status(201).json({ message: "New country data added successfully", data: newData });
 });
 
-app.patch('/api/countries/:id', async (req, res) => {
+app.patch("/api/countries/:id", async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
   const updatedData = await Country.findOneAndUpdate({ id }, updates, { new: true });
-  if (!updatedData) return res.status(404).json({ message: 'Data not found' });
-  res.json({ message: 'Country data updated successfully', data: updatedData });
+  if (!updatedData) return res.status(404).json({ message: "Data not found" });
+  res.json({ message: "Country data updated successfully", data: updatedData });
 });
 
-app.delete('/api/countries/:id', async (req, res) => {
+app.delete("/api/countries/:id", async (req, res) => {
   const { id } = req.params;
   const deletedData = await Country.findOneAndDelete({ id });
-  if (!deletedData) return res.status(404).json({ message: 'Data not found' });
-  res.json({ message: 'Country data deleted successfully' });
+  if (!deletedData) return res.status(404).json({ message: "Data not found" });
+  res.json({ message: "Country data deleted successfully" });
 });
 
-// ---------------- JOURNAL MODEL ----------------
+/* ---------------- JOURNAL MODEL ---------------- */
 const journalSchema = new mongoose.Schema({
   journalId: { type: String, unique: true, default: uuidv4 },
   journalTitle: String,
@@ -77,8 +78,8 @@ const journalSchema = new mongoose.Schema({
   startDate: Date,
   endDate: Date,
   createdAt: { type: Date, default: Date.now },
-  images: [String], // Array of images (base64 encoded)
-  content: String,   // Content of the chapter
+  images: [String],
+  content: String,
 });
 
 const Journal = mongoose.model("Journal", journalSchema);
@@ -136,21 +137,66 @@ app.delete("/api/journals/:journalId", async (req, res) => {
   res.json({ message: "Journal deleted successfully" });
 });
 
-// ---------------- PROXY ROUTE ----------------
-app.get('/api/proxy', async (req, res) => {
-  const targetURL = req.query.url;
-  if (!targetURL) return res.status(400).json({ error: 'URL is required' });
+/* ---------------- FAQ MODEL ---------------- */
+const faqSchema = new mongoose.Schema({
+  category: String,
+  question: String,
+  answer: String,
+});
 
+const FAQ = mongoose.model("FAQ", faqSchema);
+
+// Fetch all FAQs categorized
+app.get("/api/faqs", async (req, res) => {
   try {
-    const response = await fetch(targetURL);
-    const data = await response.text();
-    res.send(data);
+    const faqs = await FAQ.find();
+    const categorizedFAQs = faqs.reduce((acc, faq) => {
+      acc[faq.category] = acc[faq.category] || [];
+      acc[faq.category].push({ question: faq.question, answer: faq.answer });
+      return acc;
+    }, {});
+
+    res.json(categorizedFAQs);
   } catch (error) {
-    res.status(500).json({ error: `Error fetching URL: ${error.message}` });
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-// ---------------- MESSAGE MODEL & CONTACT ROUTE ----------------
+// Add a new FAQ
+app.post("/api/faqs", async (req, res) => {
+  try {
+    const newFAQ = new FAQ(req.body);
+    await newFAQ.save();
+    res.status(201).json({ message: "FAQ added successfully", faq: newFAQ });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update an FAQ
+app.patch("/api/faqs/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const updatedFAQ = await FAQ.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedFAQ) return res.status(404).json({ error: "FAQ not found" });
+    res.json({ message: "FAQ updated successfully", faq: updatedFAQ });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete an FAQ
+app.delete("/api/faqs/:id", async (req, res) => {
+  try {
+    const deletedFAQ = await FAQ.findByIdAndDelete(req.params.id);
+    if (!deletedFAQ) return res.status(404).json({ error: "FAQ not found" });
+    res.json({ message: "FAQ deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/* ---------------- MESSAGE MODEL ---------------- */
 const messageSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -162,7 +208,6 @@ const Message = mongoose.model("Message", messageSchema);
 
 app.post("/api/contact", async (req, res) => {
   const { name, email, message } = req.body;
-
   if (!name || !email || !message) {
     return res.status(400).json({ error: "All fields are required" });
   }
@@ -170,20 +215,11 @@ app.post("/api/contact", async (req, res) => {
   try {
     const newMessage = new Message({ name, email, message });
     await newMessage.save();
-
     res.status(201).json({ success: "Message received successfully", data: newMessage });
   } catch (error) {
     res.status(500).json({ error: "Server error", message: error.message });
   }
 });
 
-app.get("/api/messages", async (req, res) => {
-  try {
-    const messages = await Message.find();
-    res.json(messages);
-  } catch (error) {
-    res.status(500).json({ error: "Server error", message: error.message });
-  }
-});
-
+/* ---------------- SERVER START ---------------- */
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

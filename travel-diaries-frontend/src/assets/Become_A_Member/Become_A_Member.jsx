@@ -1,8 +1,12 @@
 import { Typography, Button, TextField } from "@mui/material";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import axios from "axios";
+import Navbar from "../LandingPage/Parts/Navbar"; 
+import Footer from "../LandingPage/Parts/Footer";
 
 const ContactSection = () => {
+  const navigate = useNavigate(); // Initialize navigate function
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
 
   const handleChange = (e) => {
@@ -12,7 +16,7 @@ const ContactSection = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/contact", formData);
+      await axios.post("https://travel-diaries-t6c5.onrender.com/api/contact", formData);
       alert("Message sent successfully!");
       setFormData({ name: "", email: "", message: "" });
     } catch (error) {
@@ -22,8 +26,10 @@ const ContactSection = () => {
 
   return (
     <div>
+      <Navbar />
+
       {/* Contact Section */}
-      <div className="flex flex-col md:flex-row items-center bg-[#F4A42E] text-black">
+      <div className="flex flex-col md:flex-row items-center bg-[#F4A42E] text-black mt-18">
         <div className="md:w-1/2 text-left p-10">
           <Typography variant="h3" className="font-bold mb-4">
             Contact us
@@ -42,7 +48,9 @@ const ContactSection = () => {
           />
         </div>
       </div>
-      <div className="flex flex-col md:flex-row items-center bg-white text-black mt-10 p-10 rounded-lg ">
+
+      {/* FAQ Section */}
+      <div className="flex flex-col md:flex-row items-center bg-white text-black mt-10 p-10 rounded-lg">
         <div className="md:w-1/2 h-full">
           <img
             src="https://res-console.cloudinary.com/dsddldquo/thumbnails/v1/image/upload/v1740199415/bHZicmdwN3R4ZmpjcXRvd3NmNXc=/drilldown"
@@ -62,6 +70,7 @@ const ContactSection = () => {
           <Button
             variant="contained"
             sx={{ backgroundColor: "#F4A42E", color: "black", '&:hover': { backgroundColor: "#e69528" } }}
+            onClick={() => navigate("/faqs")} // Navigate to FAQ page
           >
             Read FAQs
           </Button>
@@ -75,7 +84,7 @@ const ContactSection = () => {
             Customer service
           </Typography>
           <Typography variant="body1" className="mb-6">
-            Do you have questions, remarks or feedback about Travel Diaries?
+            Do you have questions, remarks, or feedback about Travel Diaries?
             Please get in touch with us through our contact form or by sending
             an email to support@traveldiariesapp.com.
           </Typography>
@@ -119,8 +128,7 @@ const ContactSection = () => {
         </form>
       </div>
 
-      {/* FAQ Section */}
-      
+      <Footer />
     </div>
   );
 };
