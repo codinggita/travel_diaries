@@ -2,7 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { Button, CircularProgress, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Cropper from 'react-easy-crop';
-import Navbar from '../LandingPage/Parts/Navbar';
+import Navbar from '../compo/newNav';
+import { useNavigate } from 'react-router-dom';  // Import useNavigate from React Router
 
 const DropArea = styled('div')(({ isDragging }) => ({
   border: `2px dashed ${isDragging ? '#FAA41F' : '#ccc'}`,
@@ -24,6 +25,8 @@ const ImageUploadPage = ({ bookTitle }) => {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [previewMode, setPreviewMode] = useState(false);
+
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleDrop = (event) => {
     event.preventDefault();
@@ -100,7 +103,8 @@ const ImageUploadPage = ({ bookTitle }) => {
       coverImage: image,
     };
     console.log('Book saved:', bookData);
-    // Submit bookData to API or state management
+    
+    navigate('/book');  
   };
 
   return (

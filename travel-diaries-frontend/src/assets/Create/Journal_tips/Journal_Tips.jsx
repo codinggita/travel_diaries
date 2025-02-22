@@ -1,5 +1,5 @@
 import React from 'react';
-import Navbar from "./Parts/Navbar"
+import Navbar from "../../LandingPage/Parts/Navbar"
 import HeroSection from "./Parts/HeroSection"
 import Section1 from "./Parts/Section1"
 import Section2 from "./Parts/Section2"

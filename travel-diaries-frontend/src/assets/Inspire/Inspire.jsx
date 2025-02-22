@@ -3,6 +3,8 @@ import { FaRegCalendarAlt } from "react-icons/fa";
 import { MdLocationOn } from "react-icons/md";
 import { IoBookOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../LandingPage/Parts/Navbar";
+import Footer from "../LandingPage/Parts/Footer";
 
 const diaries = [
   {
@@ -61,6 +63,7 @@ const TravelPage = () => {
 
   return (
     <div>
+      <Navbar/>
       {/* Hero Section */}
       <section className="flex flex-col lg:flex-row items-center bg-[#FAA41F] text-black min-h-screen">
         {/* Left Section */}
@@ -140,6 +143,7 @@ const TravelPage = () => {
           ))}
         </div>
       </section>
+      <Footer/>
     </div>
   );
 };

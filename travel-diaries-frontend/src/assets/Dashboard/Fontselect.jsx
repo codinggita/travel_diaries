@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Button, IconButton } from '@mui/material';
 import { ArrowBackIos, ArrowForwardIos } from '@mui/icons-material';
-import Navbar from '../LandingPage/Parts/Navbar';
+import Navbar from '../compo/newNav';
 import Addcover from './Addcover'; // Import Addcover component
 
 import one from './Images/BLue.jpg';

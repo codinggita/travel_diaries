@@ -3,9 +3,9 @@ import { Button, TextField, CircularProgress, Checkbox, FormControlLabel, Chip }
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import Navbar from '../LandingPage/Parts/Navbar';
+import Navbar from '../compo/newNav';
 import Fontselect from './Fontselect';
-import dayjs from 'dayjs';
+// import dayjs from 'dayjs';
 import axios from 'axios';
 
 const CreateJournalPage = () => {
