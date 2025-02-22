@@ -46,7 +46,7 @@ const App = () => {
         <Route path="/create/best-travel-apps" element={<BestTravelApps />} />
         <Route path="/explore/:location" element={<TravelInspiration />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/dashboard/start-diary" element={<Name />} />
+        <Route path="/dashboard/create-diary" element={<Name />} />
         <Route path="/inspire/albania" element={<Albania />} />
         <Route path="/inspire/newzealand" element={<Newzealand />} />
         <Route path="/inspire/egypt" element={<Egypt />} />

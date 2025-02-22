@@ -17,7 +17,7 @@ const FAQs = () => {
   useEffect(() => {
     const fetchFAQs = async () => {
       try {
-        const response = await fetch("https://your-backend-url.com/api/faqs"); // Replace with your API endpoint
+        const response = await fetch("https://travel-diaries-t6c5.onrender.com/api/faqs"); // Replace with your API endpoint
         if (!response.ok) throw new Error("Failed to fetch FAQs");
         
         const data = await response.json();
@@ -109,14 +109,14 @@ const FAQs = () => {
           ) : (
             <>
               {/* Search Bar */}
-              <TextField
+              {/* <TextField
                 fullWidth
                 variant="outlined"
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 sx={{ mb: 2 }}
-              />
+              /> */}
 
               {/* Questions */}
               {filteredQuestions.length > 0 ? (

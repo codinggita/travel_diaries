@@ -1,46 +1,43 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { FiPlus } from "react-icons/fi";
+import axios from "axios";
 
-import { FaPlus } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
-import Navbar from '../compo/newNav';
-const DashboardPage = () => {
+const DiaryDashboard = () => {
+  const [diaries, setDiaries] = useState([]);
   const navigate = useNavigate();
 
-  const handleStartDiary = () => {
-    navigate('/dashboard/start-diary');
-  };
+  useEffect(() => {
+    const fetchDiaries = async () => {
+      try {
+        const response = await axios.get("https://travel-diaries-t6c5.onrender.com/api/journals");
+        setDiaries(response.data);
+      } catch (error) {
+        console.error("Error fetching diaries:", error);
+      }
+    };
+
+    fetchDiaries();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-between">
-      {/* Navbar */}
-      <Navbar/>
-
-      {/* Main Content */}
-      <div className="flex-1 flex justify-center items-center h-full">
-        <div
-          className="bg-white p-6 rounded-2xl shadow-lg text-center w-64 cursor-pointer hover:shadow-xl transition"
-          onClick={handleStartDiary}
-        >
-          <div className="flex justify-center items-center bg-orange-400 text-white rounded-full w-16 h-16 mx-auto">
-            <FaPlus size={24} />
-          </div>
-          <p className="mt-4 font-medium">Start a new diary</p>
-        </div>
+    <div className="flex flex-wrap gap-6 p-6">
+      <div
+        className="w-40 h-60 flex flex-col items-center justify-center border rounded-lg shadow-md cursor-pointer hover:shadow-lg transition"
+        onClick={() => navigate("/dashboard/create-diary")}
+      >
+        <FiPlus size={30} className="text-orange-500" />
+        <span className="mt-2 text-sm font-medium">Start a new diary</span>
       </div>
 
-      {/* Footer */}
-      <footer className="text-center text-sm text-gray-500 p-4 bg-white border-t">
-        <p>
-          © 2025 Travel Diaries. All rights reserved. · <a href="/privacy">Privacy policy</a> · <a href="/terms">Terms and conditions</a> ·{' '}
-          <a href="/user-terms">User terms</a> · <a href="/faq">Frequently Asked Questions</a> · <a href="/contact">Contact us</a>
-        </p>
-        <div className="flex justify-center gap-4 mt-2">
-          <span>📘</span>
-          <span>📸</span>
-          <span>🐦</span>
+      {diaries.map((diary) => (
+        <div key={diary.id} className="w-40 h-60 bg-white border rounded-lg shadow-md p-2">
+          <img src={diary.coverImage} alt={diary.title} className="w-full h-40 object-cover rounded" />
+          <p className="text-center font-semibold mt-2">{diary.title}</p>
         </div>
-      </footer>
+      ))}
     </div>
   );
 };
 
-export default DashboardPage;
+export default DiaryDashboard;
