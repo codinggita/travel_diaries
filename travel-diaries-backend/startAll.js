@@ -1,74 +1,24 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import fetch from 'node-fetch';
-import { v4 as uuidv4 } from 'uuid';
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+import { v4 as uuidv4 } from "uuid";
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Middleware
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+// MongoDB Connection
+mongoose
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.log("MongoDB Connection Error:", err));
 
-// ---------------- COUNTRY MODEL ----------------
-const countrySchema = new mongoose.Schema({
-  id: String,
-  hero: { title: String, description: String, buttonText: String, image: String },
-  discover: { title: String, description: String },
-  infoCards: [{ title: String, icon: String, description: String }],
-  activities: [{ image: String, title: String, description: String }],
-});
-
-const Country = mongoose.model('Country', countrySchema);
-
-app.get('/api/countries', async (req, res) => {
-  const data = await Country.find();
-  res.json(data);
-});
-
-app.get('/api/countries/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const country = await Country.findOne({ id });
-
-    if (!country) {
-      return res.status(404).json({ message: 'Country not found' });
-    }
-
-    res.json(country);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-app.post('/api/countries', async (req, res) => {
-  const newData = new Country(req.body);
-  await newData.save();
-  res.status(201).json({ message: 'New country data added successfully', data: newData });
-});
-
-app.patch('/api/countries/:id', async (req, res) => {
-  const { id } = req.params;
-  const updates = req.body;
-  const updatedData = await Country.findOneAndUpdate({ id }, updates, { new: true });
-  if (!updatedData) return res.status(404).json({ message: 'Data not found' });
-  res.json({ message: 'Country data updated successfully', data: updatedData });
-});
-
-app.delete('/api/countries/:id', async (req, res) => {
-  const { id } = req.params;
-  const deletedData = await Country.findOneAndDelete({ id });
-  if (!deletedData) return res.status(404).json({ message: 'Data not found' });
-  res.json({ message: 'Country data deleted successfully' });
-});
-
-// ---------------- JOURNAL MODEL ----------------
+/* ---------------- JOURNAL MODEL ---------------- */
 const journalSchema = new mongoose.Schema({
   journalId: { type: String, unique: true, default: uuidv4 },
   journalTitle: String,
@@ -77,96 +27,40 @@ const journalSchema = new mongoose.Schema({
   startDate: Date,
   endDate: Date,
   createdAt: { type: Date, default: Date.now },
-  images: [String], // Array of images (base64 encoded)
-  content: String,   // Content of the chapter
+  images: [String],
+  content: String,
 });
-
 const Journal = mongoose.model("Journal", journalSchema);
 
-// Connect to MongoDB
-mongoose.connect("mongodb://localhost:27017/diaryApp", { useNewUrlParser: true, useUnifiedTopology: true });
+app.route("/api/journals")
+  .get(async (req, res) => res.json(await Journal.find()))
+  .post(async (req, res) => {
+    try {
+      const { journalTitle } = req.body;
+      if (!journalTitle) {
+        return res.status(400).json({ success: false, message: "Title is required" });
+      }
+      const newJournal = new Journal({ journalTitle });
+      await newJournal.save();
+      res.status(201).json({ success: true, id: newJournal.journalId, data: newJournal });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Server error", error });
+    }
+  });
 
-// Routes
-app.post("/api/journals", async (req, res) => {
-  try {
-    const { journalTitle, startDate, endDate, images, content } = req.body;
-    const journal = new Journal({
-      journalTitle,
-      startDate,
-      endDate,
-      images,
-      content,
-    });
-    await journal.save();
-    res.status(201).json({ message: "Journal created successfully", journal });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+app.route("/api/journals/:journalId")
+  .get(async (req, res) => {
+    const journal = await Journal.findOne({ journalId: req.params.journalId });
+    journal ? res.json(journal) : res.status(404).json({ message: "Journal not found" });
+  })
+  .put(async (req, res) => {
+    const updated = await Journal.findOneAndUpdate({ journalId: req.params.journalId }, req.body, { new: true });
+    updated ? res.json({ message: "Journal updated", data: updated }) : res.status(404).json({ message: "Journal not found" });
+  })
+  .delete(async (req, res) => {
+    const deleted = await Journal.findOneAndDelete({ journalId: req.params.journalId });
+    deleted ? res.json({ message: "Journal deleted" }) : res.status(404).json({ message: "Journal not found" });
+  });
 
-app.get("/api/journals", async (req, res) => {
-  const journals = await Journal.find();
-  res.json(journals);
-});
-
-app.get("/api/journals/:journalId", async (req, res) => {
-  const { journalId } = req.params;
-  const journal = await Journal.findOne({ journalId });
-  if (!journal) return res.status(404).json({ error: "Journal not found" });
-  res.json(journal);
-});
-
-app.put("/api/journals/:journalId", async (req, res) => {
-  const { journalId } = req.params;
-  const { journalTitle, startDate, endDate, images, content } = req.body;
-
-  try {
-    const updatedJournal = await Journal.findOneAndUpdate(
-      { journalId },
-      { journalTitle, startDate, endDate, images, content },
-      { new: true }
-    );
-    if (!updatedJournal) return res.status(404).json({ error: "Journal not found" });
-    res.json({ message: "Journal updated successfully", updatedJournal });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.delete("/api/journals/:journalId", async (req, res) => {
-  const { journalId } = req.params;
-  const deletedJournal = await Journal.findOneAndDelete({ journalId });
-  if (!deletedJournal) return res.status(404).json({ error: "Journal not found" });
-  res.json({ message: "Journal deleted successfully" });
-});
-
-
-
-// ---------------- PROXY ROUTE ----------------
-app.get('/proxy', async (req, res) => {
-  const targetURL = req.query.url;
-  if (!targetURL) return res.status(400).send('URL is required');
-
-  try {
-    const response = await fetch(targetURL);
-    const data = await response.text();
-    res.send(data);
-  } catch (error) {
-    res.status(500).send(`Error fetching the URL: ${error.message}`);
-  }
-});
-
-// ------------------Message-------------------
-app.post("/contact", (req, res) => {
-  const { name, email, message } = req.body;
-
-  if (!name || !email || !message) {
-    return res.status(400).json({ error: "All fields are required" });
-  }
-
-  console.log("New Contact Message:", { name, email, message });
-
-  res.status(200).json({ success: "Message received successfully" });
-});
-
+/* ---------------- SERVER START ---------------- */
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -22,7 +22,8 @@ import Egypt from './assets/Inspire/Egypt'
 import Italy from './assets/Inspire/Italy'
 import Portugal from './assets/Inspire/Portugal'
 import Uk from './assets/Inspire/Uk'
-import Editbook from './assets/Dashboard/editbook'
+import Editbook from './assets/Dashboard/editbook';
+import FAQs from './assets/Become_A_Member/Faqs'
 
 
 const App = () => {
@@ -45,7 +46,7 @@ const App = () => {
         <Route path="/create/best-travel-apps" element={<BestTravelApps />} />
         <Route path="/explore/:location" element={<TravelInspiration />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/dashboard/start-diary" element={<Name />} />
+        <Route path="/dashboard/create-diary" element={<Name />} />
         <Route path="/inspire/albania" element={<Albania />} />
         <Route path="/inspire/newzealand" element={<Newzealand />} />
         <Route path="/inspire/egypt" element={<Egypt />} />
@@ -53,6 +54,8 @@ const App = () => {
         <Route path="/inspire/portugal" element={<Portugal />} />
         <Route path="/inspire/uk" element={<Uk />} />
         <Route path="/book" element={<Editbook />} />
+        <Route path="/faqs" element={<FAQs />} />
+
 
 
       </Routes>
