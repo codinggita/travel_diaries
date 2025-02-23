@@ -16,7 +16,6 @@ const connectMongoDB = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("MongoDB Connected");
   } catch (err) {
     console.log("MongoDB Connection Error:", err);
     process.exit(1);
@@ -81,19 +80,23 @@ const createServer = (port, routesConfig) => {
   app.use(express.json());
   app.use(cors());
 
-  // Apply routes and middleware
+  // Apply routes
   routesConfig(app);
 
-  return new Promise((resolve) => {
-    const server = app.listen(port, () => {
-      console.log(`Server running on port ${port}`);
+  return new Promise((resolve, reject) => {
+    const server = app.listen(port, "0.0.0.0", () => {
       resolve(server);
+    });
+    server.on("error", (err) => {
+      console.error(`Server error on port ${port}:`, err);
+      reject(err);
     });
   });
 };
 
-// Define routes for each server
-const proxyRoutes = (app) => {
+// Define all routes in a single function
+const allRoutes = (app) => {
+  // Proxy Routes (Port 5000)
   app.get("/proxy", async (req, res) => {
     const targetURL = req.query.url;
     if (!targetURL) return res.status(400).send("URL is required");
@@ -106,10 +109,8 @@ const proxyRoutes = (app) => {
       res.status(500).send(`Error fetching the URL: ${error.message}`);
     }
   });
-};
 
-const userRoutes = (app) => {
-  // Register User
+  // User Routes (Port 5001)
   app.post("/api/register", async (req, res) => {
     try {
       const { username, email, password, authMethod } = req.body;
@@ -120,10 +121,8 @@ const userRoutes = (app) => {
       res.status(500).json({ error: error.message });
     }
   });
-};
 
-const journalRoutes = (app) => {
-  // Create Journal
+  // Journal Routes (Port 5002)
   app.post("/api/journals", upload.single("coverImage"), async (req, res) => {
     try {
       const { title, content, username, chapterName, date, story } = req.body;
@@ -166,7 +165,6 @@ const journalRoutes = (app) => {
     }
   });
 
-  // Get All Journals
   app.get("/api/journals", async (req, res) => {
     try {
       const journals = await Journal.find();
@@ -176,7 +174,6 @@ const journalRoutes = (app) => {
     }
   });
 
-  // Get Journal by journalId
   app.get("/api/journals/:journalId", async (req, res) => {
     try {
       const { journalId } = req.params;
@@ -192,7 +189,6 @@ const journalRoutes = (app) => {
     }
   });
 
-  // Get Journals by Username
   app.get("/api/journals/user/:username", async (req, res) => {
     try {
       const { username } = req.params;
@@ -208,7 +204,6 @@ const journalRoutes = (app) => {
     }
   });
 
-  // Update Journal by journalId
   app.put("/api/journals/:journalId", upload.single("coverImage"), async (req, res) => {
     try {
       const { journalId } = req.params;
@@ -252,7 +247,6 @@ const journalRoutes = (app) => {
     }
   });
 
-  // Delete Journal by journalId
   app.delete("/api/journals/:journalId", async (req, res) => {
     try {
       const { journalId } = req.params;
@@ -268,9 +262,8 @@ const journalRoutes = (app) => {
       res.status(500).json({ error: error.message });
     }
   });
-};
 
-const countryRoutes = (app) => {
+  // Country Routes (Port 3000)
   app.get("/api/countries", async (req, res) => {
     const data = await Country.find();
     res.json(data);
@@ -304,19 +297,20 @@ const countryRoutes = (app) => {
   });
 };
 
-// Start all servers
+// Start all servers with a single message
 const startServers = async () => {
-  await connectMongoDB(); // Ensure MongoDB is connected before starting servers
+  await connectMongoDB(); // Ensure MongoDB is connected
 
   const servers = [
-    createServer(5000, proxyRoutes), // Proxy server
-    createServer(5001, userRoutes), // User server
-    createServer(5002, journalRoutes), // Journal server
-    createServer(3000, countryRoutes), // Country server
+    createServer(5000, allRoutes), // Proxy server
+    createServer(5001, allRoutes), // User server
+    createServer(5002, allRoutes), // Journal server
+    createServer(3000, allRoutes), // Country server
   ];
 
   try {
     await Promise.all(servers);
+    console.log("All servers started successfully on ports 3000, 5000, 5001, and 5002");
   } catch (err) {
     console.error("Error starting servers:", err);
     process.exit(1);
