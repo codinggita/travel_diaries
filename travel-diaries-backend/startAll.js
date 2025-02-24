@@ -16,13 +16,14 @@ const connectMongoDB = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
+    console.log("MongoDB connected successfully");
   } catch (err) {
     console.log("MongoDB Connection Error:", err);
     process.exit(1);
   }
 };
 
-// Configure multer for file uploads (for Journals)
+// Configure multer for multiple file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Define models
@@ -38,11 +39,14 @@ const User = mongoose.model("User", userSchema);
 const journalSchema = new mongoose.Schema({
   journalId: { type: String, unique: true, default: uuidv4 },
   title: String,
-  content: String,
+  content: String, // Structured JSON containing chapters
   username: String,
   createdAt: { type: Date, default: Date.now },
-  images: [String], // For journal images
-  coverImage: { type: String, default: "https://via.placeholder.com/150x200?text=Default+Cover" }, // Default cover image
+  images: [String], // Array for chapter images
+  coverImage: { type: String, default: "https://via.placeholder.com/150x200?text=Default+Cover" }, // Separate field for cover image
+  countries: [String],
+  startDate: { type: Date, default: null },
+  endDate: { type: Date, default: null },
 });
 const Journal = mongoose.model("Journal", journalSchema);
 
@@ -124,45 +128,57 @@ const allRoutes = (app) => {
   });
 
   // Journal Routes (Port 5002)
-  app.post("/api/journals", upload.single("coverImage"), async (req, res) => {
+  app.post("/api/journals", upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
     try {
-      const { title, content, username, chapterName, date, story } = req.body;
+      const { title, content, username, countries, startDate, endDate } = req.body;
 
       if (!title || !content || !username) {
-        return res
-          .status(400)
-          .json({ error: "Title, content, and username are required" });
+        return res.status(400).json({ error: "Title, content, and username are required" });
       }
 
-      let images = [];
-      if (req.file) {
-        const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString(
-          "base64"
-        )}`;
-        images.push(base64Image);
-      } else {
-        images.push("https://via.placeholder.com/150x200?text=Default+Cover");
+      // Parse structured content (chapters)
+      const parsedContent = JSON.parse(content);
+      if (!parsedContent.chapters || !Array.isArray(parsedContent.chapters)) {
+        return res.status(400).json({ error: "Content must contain a chapters array" });
       }
 
-      const structuredContent = JSON.stringify({
-        chapterName: chapterName || "",
-        date: date || "",
-        story: story || content || "",
+      // Handle cover image
+      let coverImage = "https://via.placeholder.com/150x200?text=Default+Cover";
+      if (req.files && req.files["coverImage"] && req.files["coverImage"][0]) {
+        const coverFile = req.files["coverImage"][0];
+        coverImage = `data:${coverFile.mimetype};base64,${coverFile.buffer.toString("base64")}`;
+      }
+
+      // Handle chapter images
+      const chapterImages = req.files && req.files["images"]
+        ? req.files["images"].map(file => `data:${file.mimetype};base64,${file.buffer.toString("base64")}`)
+        : [];
+
+      // Distribute images to chapters
+      let imageIndex = 0;
+      parsedContent.chapters.forEach(chapter => {
+        const numImages = chapter.images ? chapter.images.length : 0; // Number of images expected for this chapter
+        chapter.images = chapterImages.slice(imageIndex, imageIndex + numImages);
+        imageIndex += numImages;
       });
 
+      // Create new journal
       const journal = new Journal({
         title,
-        content: structuredContent,
+        content: JSON.stringify(parsedContent),
         username,
-        images,
-        coverImage: req.file ? `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}` : "https://via.placeholder.com/150x200?text=Default+Cover",
+        images: chapterImages, // Store all chapter images here
+        coverImage, // Store cover image separately
+        countries: countries ? JSON.parse(countries) : [],
+        startDate: startDate || null,
+        endDate: endDate || null,
       });
+
       await journal.save();
 
-      res
-        .status(201)
-        .json({ message: "Journal created successfully", journal });
+      res.status(201).json({ message: "Journal created successfully", journal });
     } catch (error) {
+      console.error("Error creating journal:", error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -206,7 +222,7 @@ const allRoutes = (app) => {
     }
   });
 
-  app.put("/api/journals/:journalId", upload.array("images"), async (req, res) => {
+  app.put("/api/journals/:journalId", upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
     try {
       const { journalId } = req.params;
       const { title, content } = req.body;
@@ -220,17 +236,30 @@ const allRoutes = (app) => {
         return res.status(400).json({ error: "Content must contain a chapters array" });
       }
 
-      const images = req.files.map((file) => 
-        `data:${file.mimetype};base64,${file.buffer.toString("base64")}`
-      );
+      // Handle cover image
+      let coverImage;
+      if (req.files && req.files["coverImage"] && req.files["coverImage"][0]) {
+        const coverFile = req.files["coverImage"][0];
+        coverImage = `data:${coverFile.mimetype};base64,${coverFile.buffer.toString("base64")}`;
+      }
+
+      // Handle chapter images
+      const chapterImages = req.files && req.files["images"]
+        ? req.files["images"].map(file => `data:${file.mimetype};base64,${file.buffer.toString("base64")}`)
+        : [];
       let imageIndex = 0;
       parsedContent.chapters.forEach((chapter) => {
         const chapterImageCount = chapter.images ? chapter.images.length : 0;
-        chapter.images = images.slice(imageIndex, imageIndex + chapterImageCount);
+        chapter.images = chapterImages.slice(imageIndex, imageIndex + chapterImageCount);
         imageIndex += chapterImageCount;
       });
 
-      const updates = { title, content: JSON.stringify(parsedContent), images };
+      const updates = { 
+        title, 
+        content: JSON.stringify(parsedContent), 
+        images: chapterImages,
+      };
+      if (coverImage) updates.coverImage = coverImage;
 
       const updatedJournal = await Journal.findOneAndUpdate(
         { journalId },
@@ -273,9 +302,7 @@ const allRoutes = (app) => {
   app.post("/api/countries", async (req, res) => {
     const newData = new Country(req.body);
     await newData.save();
-    res
-      .status(201)
-      .json({ message: "New country data added successfully", data: newData });
+    res.status(201).json({ message: "New country data added successfully", data: newData });
   });
 
   app.patch("/api/countries/:id", async (req, res) => {

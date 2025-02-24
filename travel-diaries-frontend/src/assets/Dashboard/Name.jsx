@@ -13,7 +13,7 @@ import {
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios from "axios";
@@ -42,7 +42,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const username = "user123"; // Replace with actual auth logic
-  const navigate = useNavigate(); // Add useNavigate hook
+  const navigate = useNavigate();
 
   const validateStep = () => {
     if (step === 1 && !journalTitle.trim()) {
@@ -193,6 +193,7 @@ function App() {
         chapterName: chapter.chapterName,
         story: chapter.story,
         date: chapter.date ? chapter.date.toISOString() : null,
+        images: chapter.images.map(() => true), // Placeholder for image count
       })),
     });
     formData.append("content", structuredContent);
@@ -201,10 +202,18 @@ function App() {
       formData.append("startDate", startDate ? startDate.toISOString() : "");
       formData.append("endDate", endDate ? endDate.toISOString() : "");
     }
-    if (coverPhoto) formData.append("coverImage", coverPhoto);
+
+    // Append cover image separately
+    if (coverPhoto) {
+      formData.append("coverImage", coverPhoto);
+    }
+
+    // Append chapter images
     chapters.forEach((chapter) => {
       chapter.images.forEach((image) => {
-        if (image.file) formData.append("images", image.file);
+        if (image.file) {
+          formData.append("images", image.file);
+        }
       });
     });
 
@@ -220,7 +229,7 @@ function App() {
       resetForm();
       if (finish) {
         alert("Diary saved successfully!");
-        navigate("/dashboard"); // Navigate to /dashboard after finishing
+        navigate("/dashboard");
       }
     } catch (error) {
       setError("Failed to create journal. Please try again.");
