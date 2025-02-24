@@ -41,7 +41,8 @@ const journalSchema = new mongoose.Schema({
   content: String,
   username: String,
   createdAt: { type: Date, default: Date.now },
-  images: [String], // For journal cover images
+  images: [String], // For journal images
+  coverImage: { type: String, default: "https://via.placeholder.com/150x200?text=Default+Cover" }, // Default cover image
 });
 const Journal = mongoose.model("Journal", journalSchema);
 
@@ -154,6 +155,7 @@ const allRoutes = (app) => {
         content: structuredContent,
         username,
         images,
+        coverImage: req.file ? `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}` : "https://via.placeholder.com/150x200?text=Default+Cover",
       });
       await journal.save();
 
@@ -204,30 +206,31 @@ const allRoutes = (app) => {
     }
   });
 
-  app.put("/api/journals/:journalId", upload.single("coverImage"), async (req, res) => {
+  app.put("/api/journals/:journalId", upload.array("images"), async (req, res) => {
     try {
       const { journalId } = req.params;
-      const { title, content, chapterName, date, story } = req.body;
+      const { title, content } = req.body;
 
       if (!title || !content) {
         return res.status(400).json({ error: "Title and content are required" });
       }
 
-      let updates = { title, content: JSON.stringify(JSON.parse(content || '{}')) };
-      if (req.file) {
-        const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString(
-          "base64"
-        )}`;
-        updates.images = [base64Image];
+      const parsedContent = JSON.parse(content || "{}");
+      if (!parsedContent.chapters || !Array.isArray(parsedContent.chapters)) {
+        return res.status(400).json({ error: "Content must contain a chapters array" });
       }
 
-      if (chapterName || date || story) {
-        updates.content = JSON.stringify({
-          chapterName: chapterName || "",
-          date: date || "",
-          story: story || content || "",
-        });
-      }
+      const images = req.files.map((file) => 
+        `data:${file.mimetype};base64,${file.buffer.toString("base64")}`
+      );
+      let imageIndex = 0;
+      parsedContent.chapters.forEach((chapter) => {
+        const chapterImageCount = chapter.images ? chapter.images.length : 0;
+        chapter.images = images.slice(imageIndex, imageIndex + chapterImageCount);
+        imageIndex += chapterImageCount;
+      });
+
+      const updates = { title, content: JSON.stringify(parsedContent), images };
 
       const updatedJournal = await Journal.findOneAndUpdate(
         { journalId },
@@ -239,9 +242,7 @@ const allRoutes = (app) => {
         return res.status(404).json({ error: "Journal not found" });
       }
 
-      res
-        .status(200)
-        .json({ message: "Journal updated successfully", updatedJournal });
+      res.status(200).json({ message: "Journal updated successfully", updatedJournal });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
