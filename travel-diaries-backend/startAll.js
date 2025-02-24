@@ -126,6 +126,15 @@ const allRoutes = (app) => {
       res.status(500).json({ error: error.message });
     }
   });
+  
+  app.get("/api/register", async (req, res) => {
+    try {
+      const users = await User.find({}, { password: 0 }); // Exclude password field for security
+      res.status(200).json(users);
+    } catch (error) {
+      res.status(500).json({ error: "Error fetching users: " + error.message });
+    }
+  });
 
   // Journal Routes (Port 5002)
   app.post("/api/journals", upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
