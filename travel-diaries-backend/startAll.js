@@ -28,9 +28,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Define models
 const userSchema = new mongoose.Schema({
-  username: String,
-  email: String,
-  password: String,
+  username: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
   authMethod: String,
   createdAt: { type: Date, default: Date.now },
 });
@@ -38,9 +38,9 @@ const User = mongoose.model("User", userSchema);
 
 const journalSchema = new mongoose.Schema({
   journalId: { type: String, unique: true, default: uuidv4 },
-  title: String,
-  content: String, // Structured JSON containing chapters
-  username: String,
+  title: { type: String, required: true },
+  content: { type: String, required: true }, // Structured JSON containing chapters
+  username: { type: String, required: true, index: true }, // Required and indexed for faster queries
   createdAt: { type: Date, default: Date.now },
   images: [String], // Array for chapter images
   coverImage: { type: String, default: "https://via.placeholder.com/150x200?text=Default+Cover" }, // Separate field for cover image
@@ -157,7 +157,7 @@ const allRoutes = (app) => {
       // Distribute images to chapters
       let imageIndex = 0;
       parsedContent.chapters.forEach(chapter => {
-        const numImages = chapter.images ? chapter.images.length : 0; // Number of images expected for this chapter
+        const numImages = chapter.images ? chapter.images.length : 0;
         chapter.images = chapterImages.slice(imageIndex, imageIndex + numImages);
         imageIndex += numImages;
       });
@@ -167,8 +167,8 @@ const allRoutes = (app) => {
         title,
         content: JSON.stringify(parsedContent),
         username,
-        images: chapterImages, // Store all chapter images here
-        coverImage, // Store cover image separately
+        images: chapterImages,
+        coverImage,
         countries: countries ? JSON.parse(countries) : [],
         startDate: startDate || null,
         endDate: endDate || null,
@@ -213,7 +213,7 @@ const allRoutes = (app) => {
       const journals = await Journal.find({ username });
 
       if (!journals.length) {
-        return res.status(404).json({ error: "No journals found for this username" });
+        return res.status(200).json([]); // Return empty array instead of 404
       }
 
       res.status(200).json(journals);
