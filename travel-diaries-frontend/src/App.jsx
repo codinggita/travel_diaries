@@ -24,6 +24,7 @@ import Portugal from './assets/Inspire/Portugal'
 import Uk from './assets/Inspire/Uk'
 import Editbook from './assets/Dashboard/editbook';
 import FAQs from './assets/Become_A_Member/Faqs'
+import EditJournal from './assets/Dashboard/editbook';
 
 
 const App = () => {
@@ -55,6 +56,7 @@ const App = () => {
         <Route path="/inspire/uk" element={<Uk />} />
         <Route path="/book" element={<Editbook />} />
         <Route path="/faqs" element={<FAQs />} />
+        <Route path="/edit/:journalId" element={<EditJournal />} />
 
 
 
