@@ -88,11 +88,11 @@ const Navbar = () => {
             <MenuItem onClick={handleLogoutClick} sx={{ fontWeight: "bold", color: "black" }}>
               Logout
             </MenuItem>
-            <MenuItem onClick={() => handleNavigate("/cart")} sx={{ fontWeight: "bold", color: "black" }}>
+            <MenuItem onClick={() => handleNavigate("/dashboard/cart")} sx={{ fontWeight: "bold", color: "black" }}>
               <ShoppingCart sx={{ color: "#FAA41F", mr: 1 }} />
               Cart
             </MenuItem>
-            <MenuItem onClick={() => handleNavigate("/settings")} sx={{ fontWeight: "bold", color: "black" }}>
+            <MenuItem onClick={() => handleNavigate("/dashboard/settings")} sx={{ fontWeight: "bold", color: "black" }}>
               <FaCog style={{ color: "#FAA41F", marginRight: "8px" }} />
               Settings
             </MenuItem>
@@ -115,7 +115,7 @@ const Navbar = () => {
             Logout
           </Button>
 
-          <Button
+          {/* <Button
             onClick={() => handleNavigate("/cart")}
             sx={{
               color: "black",
@@ -128,10 +128,10 @@ const Navbar = () => {
           >
             <ShoppingCart sx={{ color: "white", mr: 1 }} />
             Cart
-          </Button>
+          </Button> */}
 
-          <Button
-            onClick={() => handleNavigate("/settings")}
+          {/* <Button
+            onClick={() => handleNavigate("/dashboard/settings")}
             sx={{
               color: "black",
               border: "3px solid black",
@@ -144,7 +144,7 @@ const Navbar = () => {
           >
             <FaCog style={{ color: "#FAA41F", marginRight: "8px" }} />
             Settings
-          </Button>
+          </Button> */}
         </div>
       )}
     </nav>

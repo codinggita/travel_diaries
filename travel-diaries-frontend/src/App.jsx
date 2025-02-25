@@ -30,6 +30,7 @@ import Uk from './assets/Inspire/Uk';
 import Editbook from './assets/Dashboard/editbook';
 import FAQs from './assets/Become_A_Member/Faqs';
 import EditJournal from './assets/Dashboard/editbook';
+import Settings from './assets/Dashboard/Setting';
 
 // Custom Loader Component: Enhanced "Book is Being Written"
 const BookWritingLoader = () => {
@@ -220,6 +221,8 @@ const App = () => {
         <Route path="/create/travel-blog-guide" element={<TravelBlogGuide />} />
         <Route path="/create/best-travel-apps" element={<BestTravelApps />} />
         <Route path="/explore/:location" element={<TravelInspiration />} />
+        <Route path="/dashboard/settings" element={<Settings />} />
+
         <Route
           path="/dashboard"
           element={<ProtectedRoute element={<Dashboard />} isAuthenticated={isAuthenticated} />}
