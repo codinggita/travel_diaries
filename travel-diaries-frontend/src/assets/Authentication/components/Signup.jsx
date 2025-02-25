@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { auth } from '../Firebase/Firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { useNavigate, Link } from 'react-router-dom'; // Added Link from react-router-dom
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify'; // Import react-toastify
+import 'react-toastify/dist/ReactToastify.css'; // Import the default CSS for styling
 import logo from '../../LandingPage/Images/travel-diaries-logo-footer.png';
 import rightImage from '../../LandingPage/Images/auth-side.png';
 import { FaGoogle } from 'react-icons/fa';
@@ -40,17 +42,31 @@ function Signup() {
         authMethod: "email"
       });
 
-      alert("Registration successful!");
+      toast.success("Registration successful!", {
+        position: "top-right",
+        autoClose: 3000, // Close after 3 seconds
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       navigate("/welcomepage");
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
   const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider(); // Note: GoogleAuthProvider needs to be imported
+    const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider); // Note: signInWithPopup needs to be imported
+      const result = await signInWithPopup(auth, provider);
       const user = result.user;
       const idToken = await user.getIdToken();
       localStorage.setItem('idToken', idToken); // Store the token
@@ -63,10 +79,24 @@ function Signup() {
         authMethod: "google"
       });
 
-      alert("Google login successful!");
+      toast.success("Google login successful!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       navigate("/welcomepage");
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
@@ -125,7 +155,6 @@ function Signup() {
             <FaGoogle className="w-6 h-6 mr-3" />
             <span>Sign Up with Google</span>
           </div>
-          {/* Added Link to Login */}
           <p className="mt-4 text-center text-sm">
             Already have an account?{" "}
             <Link
@@ -140,6 +169,8 @@ function Signup() {
       <div className="h-[750px] flex items-center justify-center p-12">
         <img src={rightImage} alt="Auth Section Image" className="object-cover w-full h-full" />
       </div>
+      {/* Add ToastContainer to render the toast notifications */}
+      <ToastContainer />
     </div>
   );
 }

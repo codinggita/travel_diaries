@@ -11,6 +11,8 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import { FaTrash, FaPlus } from "react-icons/fa";
 import Navbar from "../compo/newNav";
+import { toast, ToastContainer } from "react-toastify"; // Import react-toastify
+import "react-toastify/dist/ReactToastify.css"; // Import toastify CSS
 
 function EditJournal() {
   const { journalId } = useParams();
@@ -32,9 +34,22 @@ function EditJournal() {
       try {
         setLoading(true);
         console.log("Fetching journal with ID:", journalId);
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("You must be logged in to edit journals.");
+          navigate("/login");
+          return;
+        }
+
         const response = await axios.get(
           `https://travel-diaries-t6c5.onrender.com/api/journals/${journalId}`,
-          { timeout: 10000 }
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            timeout: 10000,
+          }
         );
         console.log("Response data:", response.data);
         const journalData = response.data;
@@ -68,14 +83,18 @@ function EditJournal() {
         }
       } catch (error) {
         console.error("Error details:", error.response?.data || error.message);
-        setError(`Error fetching journal: ${error.response?.status} - ${error.response?.data?.error || error.message}`);
+        setError(
+          error.response
+            ? `Error fetching journal: ${error.response.status} - ${error.response.data?.error || error.message}`
+            : `Error fetching journal: ${error.message}`
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchJournal();
-  }, [journalId]);
+  }, [journalId, navigate]);
 
   const handleChapterChange = (field, value) => {
     const updatedChapter = { ...currentChapter, [field]: value };
@@ -98,7 +117,7 @@ function EditJournal() {
         file,
         preview: URL.createObjectURL(file),
       })),
-    ].slice(0, 16); // Limit to 16 images (4x4 grid)
+    ].slice(0, 16);
     setCurrentChapter({ ...currentChapter, images: updatedImages });
     if (selectedChapterIndex !== -1) {
       updateChapter(selectedChapterIndex, { images: updatedImages });
@@ -107,7 +126,9 @@ function EditJournal() {
   };
 
   const removeImage = (imageIndex) => {
-    const updatedImages = currentChapter.images.filter((_, index) => index !== imageIndex);
+    const updatedImages = currentChapter.images.filter(
+      (_, index) => index !== imageIndex
+    );
     setCurrentChapter({ ...currentChapter, images: updatedImages });
     if (selectedChapterIndex !== -1) {
       updateChapter(selectedChapterIndex, { images: updatedImages });
@@ -122,8 +143,8 @@ function EditJournal() {
 
   const addChapter = () => {
     if (selectedChapterIndex === -1) {
-      if (!currentChapter.chapterName.trim() || !currentChapter.story.trim()) {
-        setError("Chapter name and story are required.");
+      if (!currentChapter.chapterName.trim() && !currentChapter.story.trim()) {
+        setError("Chapter name and story are empty, but you can still save!");
         return;
       }
       const newChapter = {
@@ -150,7 +171,10 @@ function EditJournal() {
     }
     const updatedChapters = chapters.filter((_, i) => i !== index);
     setChapters(updatedChapters);
-    const newIndex = updatedChapters.length > 0 ? Math.min(selectedChapterIndex, updatedChapters.length - 1) : -1;
+    const newIndex =
+      updatedChapters.length > 0
+        ? Math.min(selectedChapterIndex, updatedChapters.length - 1)
+        : -1;
     setSelectedChapterIndex(newIndex);
     setCurrentChapter(
       newIndex === -1
@@ -169,20 +193,36 @@ function EditJournal() {
     const formData = new FormData();
     formData.append("title", journal?.title || "Untitled");
 
+    // Check if the current chapter is empty when adding a new one
     if (selectedChapterIndex === -1) {
-      if (!currentChapter.chapterName.trim() || !currentChapter.story.trim()) {
-        setError("Chapter name and story are required.");
-        setIsSaving(false);
-        return;
+      if (!currentChapter.chapterName.trim() && !currentChapter.story.trim() && currentChapter.images.length === 0) {
+        toast.warn("It's not a big deal, but you didn't write anything!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        // Still allow saving by adding the empty chapter
+        const newChapter = {
+          ...currentChapter,
+          images: currentChapter.images.map((image) => ({
+            file: image.file || image,
+            preview: image.preview || image.url,
+          })),
+        };
+        setChapters([...chapters, newChapter]);
+      } else {
+        const newChapter = {
+          ...currentChapter,
+          images: currentChapter.images.map((image) => ({
+            file: image.file || image,
+            preview: image.preview || image.url,
+          })),
+        };
+        setChapters([...chapters, newChapter]);
       }
-      const newChapter = {
-        ...currentChapter,
-        images: currentChapter.images.map((image) => ({
-          file: image.file || image,
-          preview: image.preview || image.url,
-        })),
-      };
-      setChapters([...chapters, newChapter]);
     }
 
     const content = {
@@ -199,18 +239,43 @@ function EditJournal() {
     });
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("You must be logged in to save changes.");
+        navigate("/login");
+        return;
+      }
+
       const response = await axios.put(
         `https://travel-diaries-t6c5.onrender.com/api/journals/${journalId}`,
         formData,
-        { headers: { "Content-Type": "multipart/form-data" }, timeout: 10000 }
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 10000,
+        }
       );
       console.log("Journal updated:", response.data);
+      toast.success("Journal saved successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       navigate("/dashboard");
       setError("");
     } catch (error) {
       console.error("Error updating journal:", error);
       if (error.response) {
-        setError(`Error updating journal: ${error.response.status} - ${error.response.data?.error || error.message}`);
+        setError(
+          `Error updating journal: ${error.response.status} - ${
+            error.response.data?.error || error.message
+          }`
+        );
       } else {
         setError(`Error updating journal: ${error.message}`);
       }
@@ -240,7 +305,11 @@ function EditJournal() {
       <Navbar />
       <div className="w-80 bg-gray-200 p-6 rounded-l-lg shadow-md h-[calc(100vh-3rem)] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <Typography variant="h6" className="font-bold" sx={{ color: "#FAA41F" }}>
+          <Typography
+            variant="h6"
+            className="font-bold"
+            sx={{ color: "#FAA41F" }}
+          >
             Chapters ({chapters.length})
           </Typography>
           <IconButton
@@ -265,7 +334,9 @@ function EditJournal() {
               key={index}
               onClick={() => selectChapter(index)}
               className={`bg-white px-4 py-3 mb-2 rounded-md shadow-sm cursor-pointer hover:bg-gray-50 transition-colors ${
-                selectedChapterIndex === index ? "ring-2 ring-[#FAA41F]" : "ring-1 ring-gray-300"
+                selectedChapterIndex === index
+                  ? "ring-2 ring-[#FAA41F]"
+                  : "ring-1 ring-gray-300"
               }`}
             >
               <div className="flex justify-between items-center">
@@ -283,12 +354,14 @@ function EditJournal() {
                     title={chapter.story || "No story yet"}
                   >
                     {chapter.story
-                      ? chapter.story.substring(0, 50) + (chapter.story.length > 50 ? "..." : "")
+                      ? chapter.story.substring(0, 50) +
+                        (chapter.story.length > 50 ? "..." : "")
                       : "No story yet"}
                   </Typography>
                   <div className="mt-1 flex items-center space-x-2 text-gray-500 text-sm">
                     <span>
-                      {chapter.images.length} {chapter.images.length === 1 ? "Image" : "Images"}
+                      {chapter.images.length}{" "}
+                      {chapter.images.length === 1 ? "Image" : "Images"}
                     </span>
                     <span>•</span>
                     <span>{chapter.story.length} Chars</span>
@@ -309,9 +382,12 @@ function EditJournal() {
         )}
       </div>
       <div className="flex-1 flex bg-white rounded-r-lg shadow-md h-[calc(100vh-3rem)] overflow-hidden">
-        {/* Left Page: Text Only */}
         <div className="w-1/2 p-6 flex flex-col bg-gray-50 border-r border-gray-200">
-          <Typography variant="h4" className="mb-6 font-bold" sx={{ color: "#FAA41F" }}>
+          <Typography
+            variant="h4"
+            className="mb-6 font-bold"
+            sx={{ color: "#FAA41F" }}
+          >
             {journal?.title || "Edit Journal"}
           </Typography>
           <TextField
@@ -321,7 +397,10 @@ function EditJournal() {
             onChange={(e) => handleChapterChange("chapterName", e.target.value)}
             variant="standard"
             InputProps={{ disableUnderline: true }}
-            sx={{ mb: 4, input: { fontSize: "1.5rem", border: "none", color: "#FAA41F" } }}
+            sx={{
+              mb: 4,
+              input: { fontSize: "1.5rem", border: "none", color: "#FAA41F" },
+            }}
           />
           <TextField
             fullWidth
@@ -331,17 +410,19 @@ function EditJournal() {
             variant="standard"
             InputProps={{ disableUnderline: true }}
             multiline
-            rows={10}
+            rows={20}
             sx={{ flexGrow: 1, textarea: { border: "none" } }}
           />
         </div>
-        {/* Right Page: 4x4 Photo Grid */}
         <div className="w-1/2 p-6 flex flex-col bg-white">
           <div className="mb-4">
             <Button
               variant="contained"
               component="label"
-              sx={{ backgroundColor: "#FAA41F", "&:hover": { backgroundColor: "#e59400" } }}
+              sx={{
+                backgroundColor: "#FAA41F",
+                "&:hover": { backgroundColor: "#e59400" },
+              }}
             >
               Upload Images
               <input
@@ -352,9 +433,7 @@ function EditJournal() {
                 onChange={handleImageUpload}
               />
             </Button>
-            <Typography variant="caption" className="ml-2 text-gray-500">
-              (Max 16 images)
-            </Typography>
+            
           </div>
           <Grid container spacing={2} className="flex-grow">
             {currentChapter.images.map((image, index) => (
@@ -376,17 +455,23 @@ function EditJournal() {
               </Grid>
             ))}
             {currentChapter.images.length < 16 &&
-              Array.from({ length: 16 - currentChapter.images.length }).map((_, index) => (
-                <Grid item xs={3} key={`empty-${index}`}>
-                  <div className="w-full h-24 bg-gray-100 rounded-md" />
-                </Grid>
-              ))}
+              Array.from({ length: 16 - currentChapter.images.length }).map(
+                (_, index) => (
+                  <Grid item xs={3} key={`empty-${index}`}>
+                    <div className="w-full h-24 bg-gray-100 rounded-md" />
+                  </Grid>
+                )
+              )}
           </Grid>
           <div className="flex justify-end space-x-4 mt-4">
             <Button
               variant="outlined"
               onClick={() => navigate("/dashboard")}
-              sx={{ borderColor: "#FAA41F", color: "#FAA41F", "&:hover": { borderColor: "#e59400", backgroundColor: "#fff3e0" } }}
+              sx={{
+                borderColor: "#FAA41F",
+                color: "#FAA41F",
+                "&:hover": { borderColor: "#e59400", backgroundColor: "#fff3e0" },
+              }}
             >
               Cancel
             </Button>
@@ -394,13 +479,17 @@ function EditJournal() {
               variant="contained"
               onClick={handleSave}
               disabled={isSaving}
-              sx={{ backgroundColor: "#FAA41F", "&:hover": { backgroundColor: "#e59400" } }}
+              sx={{
+                backgroundColor: "#FAA41F",
+                "&:hover": { backgroundColor: "#e59400" },
+              }}
             >
               {isSaving ? <CircularProgress size={24} /> : "Save Changes"}
             </Button>
           </div>
         </div>
       </div>
+      <ToastContainer /> {/* Add ToastContainer for rendering toasts */}
     </div>
   );
 }

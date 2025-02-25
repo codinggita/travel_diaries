@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { auth } from "../Firebase/Firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import logo from "../../LandingPage/Images/travel-diaries-logo-footer.png";
 import rightImage from "../../LandingPage/Images/auth-side.png";
@@ -14,20 +14,45 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  // Initialize Google Auth Provider
+  const googleProvider = new GoogleAuthProvider();
+
+  // Email/Password Sign-In Handler
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login successful, navigating to /dashboard");
-      navigate("/dashboard", { replace: true }); // Use replace to avoid history stack issues
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      const idToken = await user.getIdToken();
+      localStorage.setItem("token", idToken);
+      console.log("Email login successful, token stored:", idToken);
+      navigate("/dashboard", { replace: true });
       console.log("Navigation called");
-      // Add a timeout to check if navigation is delayed
       setTimeout(() => {
         console.log("Current path after 500ms:", window.location.pathname);
       }, 500);
     } catch (error) {
       alert(error.message);
-      console.error("Login error:", error.message);
+      console.error("Email login error:", error.message);
+    }
+  };
+
+  // Google Sign-In Handler
+  const handleGoogleSignIn = async () => {
+    try {
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      const user = userCredential.user;
+      const idToken = await user.getIdToken();
+      localStorage.setItem("token", idToken);
+      console.log("Google login successful, token stored:", idToken);
+      navigate("/dashboard", { replace: true });
+      console.log("Navigation called");
+      setTimeout(() => {
+        console.log("Current path after 500ms:", window.location.pathname);
+      }, 500);
+    } catch (error) {
+      alert(error.message);
+      console.error("Google login error:", error.message);
     }
   };
 
@@ -41,7 +66,7 @@ function Login() {
         <img src={logo} alt="Logo" className="mb-6 w-24" />
         <div className="bg-white p-6 rounded-lg shadow-md w-96">
           <h2 className="text-2xl font-bold mb-4 text-center">Log In</h2>
-          <form onSubmit={handleSubmit} className="flex flex-col">
+          <form onSubmit={handleEmailSubmit} className="flex flex-col">
             <input
               type="email"
               placeholder="Email"
@@ -67,10 +92,20 @@ function Login() {
                 {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
               </button>
             </div>
-            <button type="submit" className="bg-[#FAA41F] cursor-pointer text-white p-2 rounded-3xl mb-4">
+            <button
+              type="submit"
+              className="bg-[#FAA41F] cursor-pointer text-white p-2 rounded-3xl mb-4"
+            >
               Log In
             </button>
           </form>
+          <button
+            onClick={handleGoogleSignIn}
+            className="w-full flex items-center justify-center bg-[#FAA41F] border border-gray-300 text-gray-700 p-2 rounded-3xl mb-4 hover:bg-[#faa41f]"
+          >
+            <FaGoogle className="mr-2 text-white " />
+            Sign in with Google
+          </button>
           <button
             className="mt-4 text-[#FAA41F] cursor-pointer"
             onClick={() => navigate("/auth/register")}
@@ -80,7 +115,11 @@ function Login() {
         </div>
       </div>
       <div className="h-[750px] flex items-center justify-center p-12">
-        <img src={rightImage} alt="Auth Section Image" className="object-cover w-full h-full" />
+        <img
+          src={rightImage}
+          alt="Auth Section Image"
+          className="object-cover w-full h-full"
+        />
       </div>
     </div>
   );
