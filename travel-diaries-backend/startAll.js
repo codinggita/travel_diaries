@@ -18,7 +18,7 @@ const connectMongoDB = async () => {
     });
     console.log("MongoDB connected successfully");
   } catch (err) {
-    console.log("MongoDB Connection Error:", err);
+    console.error("MongoDB Connection Error:", err);
     process.exit(1);
   }
 };
@@ -28,52 +28,52 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Define models
 const userSchema = new mongoose.Schema({
-  username: String,
-  email: String,
-  password: String,
-  authMethod: String,
+  username: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  authMethod: { type: String, default: "local" },
   createdAt: { type: Date, default: Date.now },
 });
 const User = mongoose.model("User", userSchema);
 
 const journalSchema = new mongoose.Schema({
   journalId: { type: String, unique: true, default: uuidv4 },
-  title: String,
-  content: String, // Structured JSON containing chapters
-  username: String,
+  title: { type: String, required: true },
+  content: { type: String, required: true }, // Structured JSON containing chapters
+  username: { type: String, required: true, index: true },
   createdAt: { type: Date, default: Date.now },
-  images: [String], // Array for chapter images
-  coverImage: { type: String, default: "https://via.placeholder.com/150x200?text=Default+Cover" }, // Separate field for cover image
-  countries: [String],
+  images: [{ type: String }], // Array for chapter images
+  coverImage: { type: String, default: "https://via.placeholder.com/150x200?text=Default+Cover" },
+  countries: [{ type: String }],
   startDate: { type: Date, default: null },
   endDate: { type: Date, default: null },
 });
 const Journal = mongoose.model("Journal", journalSchema);
 
 const countrySchema = new mongoose.Schema({
-  id: String,
+  id: { type: String, required: true, unique: true }, // Ensure id is unique and required
   hero: {
-    title: String,
-    description: String,
+    title: { type: String, required: true },
+    description: { type: String, required: true },
     buttonText: String,
-    image: String,
+    image: { type: String, required: true },
   },
   discover: {
-    title: String,
-    description: String,
+    title: { type: String, required: true },
+    description: { type: String, required: true },
   },
   infoCards: [
     {
-      title: String,
-      icon: String,
-      description: String,
+      title: { type: String, required: true },
+      icon: { type: String, required: true },
+      description: { type: String, required: true },
     },
   ],
   activities: [
     {
-      image: String,
-      title: String,
-      description: String,
+      image: { type: String, required: true },
+      title: { type: String, required: true },
+      description: { type: String, required: true },
     },
   ],
 });
@@ -90,6 +90,7 @@ const createServer = (port, routesConfig) => {
 
   return new Promise((resolve, reject) => {
     const server = app.listen(port, "0.0.0.0", () => {
+      console.log(`Server running on port ${port}`);
       resolve(server);
     });
     server.on("error", (err) => {
@@ -104,14 +105,15 @@ const allRoutes = (app) => {
   // Proxy Routes (Port 5000)
   app.get("/proxy", async (req, res) => {
     const targetURL = req.query.url;
-    if (!targetURL) return res.status(400).send("URL is required");
+    if (!targetURL) return res.status(400).json({ error: "URL is required" });
 
     try {
       const response = await fetch(targetURL);
+      if (!response.ok) throw new Error("Failed to fetch target URL");
       const data = await response.text();
       res.send(data);
     } catch (error) {
-      res.status(500).send(`Error fetching the URL: ${error.message}`);
+      res.status(500).json({ error: `Error fetching the URL: ${error.message}` });
     }
   });
 
@@ -119,9 +121,12 @@ const allRoutes = (app) => {
   app.post("/api/register", async (req, res) => {
     try {
       const { username, email, password, authMethod } = req.body;
+      if (!username || !email || !password) {
+        return res.status(400).json({ error: "Username, email, and password are required" });
+      }
       const user = new User({ username, email, password, authMethod });
       await user.save();
-      res.status(201).json({ message: "User registered successfully" });
+      res.status(201).json({ message: "User registered successfully", user: { username, email } });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -136,46 +141,40 @@ const allRoutes = (app) => {
         return res.status(400).json({ error: "Title, content, and username are required" });
       }
 
-      // Parse structured content (chapters)
       const parsedContent = JSON.parse(content);
       if (!parsedContent.chapters || !Array.isArray(parsedContent.chapters)) {
         return res.status(400).json({ error: "Content must contain a chapters array" });
       }
 
-      // Handle cover image
       let coverImage = "https://via.placeholder.com/150x200?text=Default+Cover";
       if (req.files && req.files["coverImage"] && req.files["coverImage"][0]) {
         const coverFile = req.files["coverImage"][0];
         coverImage = `data:${coverFile.mimetype};base64,${coverFile.buffer.toString("base64")}`;
       }
 
-      // Handle chapter images
       const chapterImages = req.files && req.files["images"]
         ? req.files["images"].map(file => `data:${file.mimetype};base64,${file.buffer.toString("base64")}`)
         : [];
 
-      // Distribute images to chapters
       let imageIndex = 0;
       parsedContent.chapters.forEach(chapter => {
-        const numImages = chapter.images ? chapter.images.length : 0; // Number of images expected for this chapter
+        const numImages = chapter.images ? chapter.images.length : 0;
         chapter.images = chapterImages.slice(imageIndex, imageIndex + numImages);
         imageIndex += numImages;
       });
 
-      // Create new journal
       const journal = new Journal({
         title,
         content: JSON.stringify(parsedContent),
         username,
-        images: chapterImages, // Store all chapter images here
-        coverImage, // Store cover image separately
+        images: chapterImages,
+        coverImage,
         countries: countries ? JSON.parse(countries) : [],
         startDate: startDate || null,
         endDate: endDate || null,
       });
 
       await journal.save();
-
       res.status(201).json({ message: "Journal created successfully", journal });
     } catch (error) {
       console.error("Error creating journal:", error);
@@ -196,11 +195,9 @@ const allRoutes = (app) => {
     try {
       const { journalId } = req.params;
       const journal = await Journal.findOne({ journalId });
-
       if (!journal) {
         return res.status(404).json({ error: "Journal not found" });
       }
-
       res.status(200).json(journal);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -211,12 +208,7 @@ const allRoutes = (app) => {
     try {
       const { username } = req.params;
       const journals = await Journal.find({ username });
-
-      if (!journals.length) {
-        return res.status(404).json({ error: "No journals found for this username" });
-      }
-
-      res.status(200).json(journals);
+      res.status(200).json(journals); // Return empty array if no journals found
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -231,19 +223,17 @@ const allRoutes = (app) => {
         return res.status(400).json({ error: "Title and content are required" });
       }
 
-      const parsedContent = JSON.parse(content || "{}");
+      const parsedContent = JSON.parse(content);
       if (!parsedContent.chapters || !Array.isArray(parsedContent.chapters)) {
         return res.status(400).json({ error: "Content must contain a chapters array" });
       }
 
-      // Handle cover image
       let coverImage;
       if (req.files && req.files["coverImage"] && req.files["coverImage"][0]) {
         const coverFile = req.files["coverImage"][0];
         coverImage = `data:${coverFile.mimetype};base64,${coverFile.buffer.toString("base64")}`;
       }
 
-      // Handle chapter images
       const chapterImages = req.files && req.files["images"]
         ? req.files["images"].map(file => `data:${file.mimetype};base64,${file.buffer.toString("base64")}`)
         : [];
@@ -270,7 +260,6 @@ const allRoutes = (app) => {
       if (!updatedJournal) {
         return res.status(404).json({ error: "Journal not found" });
       }
-
       res.status(200).json({ message: "Journal updated successfully", updatedJournal });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -280,13 +269,10 @@ const allRoutes = (app) => {
   app.delete("/api/journals/:journalId", async (req, res) => {
     try {
       const { journalId } = req.params;
-
       const deletedJournal = await Journal.findOneAndDelete({ journalId });
-
       if (!deletedJournal) {
         return res.status(404).json({ error: "Journal not found" });
       }
-
       res.status(200).json({ message: "Journal deleted successfully" });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -295,39 +281,68 @@ const allRoutes = (app) => {
 
   // Country Routes (Port 3000)
   app.get("/api/countries", async (req, res) => {
-    const data = await Country.find();
-    res.json(data);
+    try {
+      const data = await Country.find();
+      res.status(200).json(data);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/countries/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const country = await Country.findOne({ id });
+      if (!country) {
+        return res.status(404).json({ message: "Country not found" });
+      }
+      res.status(200).json(country);
+    } catch (error) {
+      res.status(500).json({ error: "Error fetching country: " + error.message });
+    }
   });
 
   app.post("/api/countries", async (req, res) => {
-    const newData = new Country(req.body);
-    await newData.save();
-    res.status(201).json({ message: "New country data added successfully", data: newData });
+    try {
+      const newData = new Country(req.body);
+      await newData.save();
+      res.status(201).json({ message: "New country data added successfully", data: newData });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
   });
 
   app.patch("/api/countries/:id", async (req, res) => {
-    const { id } = req.params;
-    const updates = req.body;
-    const updatedData = await Country.findOneAndUpdate({ id }, updates, { new: true });
-    if (!updatedData) {
-      return res.status(404).json({ message: "Data not found" });
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const updatedData = await Country.findOneAndUpdate({ id }, updates, { new: true });
+      if (!updatedData) {
+        return res.status(404).json({ message: "Country not found" });
+      }
+      res.status(200).json({ message: "Country data updated successfully", data: updatedData });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
-    res.json({ message: "Country data updated successfully", data: updatedData });
   });
 
   app.delete("/api/countries/:id", async (req, res) => {
-    const { id } = req.params;
-    const deletedData = await Country.findOneAndDelete({ id });
-    if (!deletedData) {
-      return res.status(404).json({ message: "Data not found" });
+    try {
+      const { id } = req.params;
+      const deletedData = await Country.findOneAndDelete({ id });
+      if (!deletedData) {
+        return res.status(404).json({ message: "Country not found" });
+      }
+      res.status(200).json({ message: "Country data deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
-    res.json({ message: "Country data deleted successfully" });
   });
 };
 
 // Start all servers with a single message
 const startServers = async () => {
-  await connectMongoDB(); // Ensure MongoDB is connected
+  await connectMongoDB();
 
   const servers = [
     createServer(5000, allRoutes), // Proxy server
