@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   TextField,
@@ -21,6 +21,8 @@ import dayjs from "dayjs";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Navbar from "../compo/newNav";
+import { auth } from "../Authentication/Firebase/Firebase"; // Adjust path as needed
+import { onAuthStateChanged } from "firebase/auth";
 
 function App() {
   const [step, setStep] = useState(1);
@@ -42,16 +44,42 @@ function App() {
   const [openPreview, setOpenPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const username = "user123"; // Replace with actual auth logic
+  const [user, setUser] = useState(null); // Store authenticated user
   const navigate = useNavigate();
+
+  // Axios instance with backend URL
+  const api = axios.create({
+    baseURL: "https://travel-diaries-t6c5.onrender.com",
+  });
+
+  // Track authentication state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (!currentUser) {
+        navigate("/auth/login"); // Redirect to login if not authenticated
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
+  // Cleanup for image previews
+  useEffect(() => {
+    return () => {
+      currentChapter.images.forEach((image) => {
+        if (image.preview) URL.revokeObjectURL(image.preview);
+      });
+      if (coverPhoto) URL.revokeObjectURL(URL.createObjectURL(coverPhoto));
+    };
+  }, [currentChapter.images, coverPhoto]);
 
   const validateStep = () => {
     if (step === 1 && !journalTitle.trim()) {
       setError("Journal title is required.");
       return false;
     }
-    if (step === 2 && countries.length === 0) {
-      setError("Please add at least one country.");
+    if (step === 2 && !skipDates && countries.length === 0) {
+      setError("Please add at least one country unless this diary is not about travelling.");
       return false;
     }
     if (step === 3 && startDate && endDate && dayjs(startDate).isAfter(endDate)) {
@@ -128,7 +156,7 @@ function App() {
         file,
         preview: URL.createObjectURL(file),
       })),
-    ];
+    ].slice(0, 16); // Limit to 16 images (4x4 grid)
     setCurrentChapter({ ...currentChapter, images: updatedImages });
     if (selectedChapterIndex !== -1) {
       updateChapter(selectedChapterIndex, { images: updatedImages });
@@ -138,6 +166,11 @@ function App() {
 
   const removeImage = (indexToRemove) => {
     const updatedImages = currentChapter.images.filter((_, index) => index !== indexToRemove);
+    updatedImages.forEach((image) => {
+      if (image.preview && !chapters.some((chapter) => chapter.images.includes(image))) {
+        URL.revokeObjectURL(image.preview);
+      }
+    });
     setCurrentChapter({ ...currentChapter, images: updatedImages });
     if (selectedChapterIndex !== -1) {
       updateChapter(selectedChapterIndex, { images: updatedImages });
@@ -183,18 +216,22 @@ function App() {
     setCurrentChapter({ ...chapters[index] });
   };
 
-  const handleSubmit = async (finish = false) => {
+  const handleSubmit = async () => {
+    if (!user) {
+      setError("Please log in to save your diary.");
+      return;
+    }
     setIsLoading(true);
     const formData = new FormData();
     formData.append("title", journalTitle);
-    formData.append("username", username);
+    formData.append("username", user.email);
 
     const structuredContent = JSON.stringify({
       chapters: chapters.map((chapter) => ({
         chapterName: chapter.chapterName,
         story: chapter.story,
         date: chapter.date ? chapter.date.toISOString() : null,
-        images: chapter.images.map(() => true), // Placeholder for image count
+        images: chapter.images.map(() => true),
       })),
     });
     formData.append("content", structuredContent);
@@ -204,12 +241,10 @@ function App() {
       formData.append("endDate", endDate ? endDate.toISOString() : "");
     }
 
-    // Append cover image separately
     if (coverPhoto) {
       formData.append("coverImage", coverPhoto);
     }
 
-    // Append chapter images
     chapters.forEach((chapter) => {
       chapter.images.forEach((image) => {
         if (image.file) {
@@ -219,22 +254,24 @@ function App() {
     });
 
     try {
-      const response = await axios.post(
-        "https://travel-diaries-t6c5.onrender.com/api/journals",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      console.log("Journal created:", response.data);
+      const token = await user.getIdToken();
+      console.log("Submitting with Token:", token);
+      const response = await api.post("/api/journals", formData, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("Journal Created:", response.data);
       setOpenPreview(false);
       setStep(1);
       resetForm();
-      if (finish) {
-        alert("Diary saved successfully!");
-        navigate("/dashboard");
-      }
+      alert("Diary saved successfully!");
+      navigate("/dashboard");
     } catch (error) {
-      setError("Failed to create journal. Please try again.");
-      console.error("Error creating journal:", error.response?.data?.error || error.message);
+      const errorMsg = error.response?.data?.error || error.message;
+      setError(`Failed to create journal: ${errorMsg}`);
+      console.error("Error creating journal:", errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -258,7 +295,7 @@ function App() {
       case 1:
         return (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <h2 className="text-2xl font-bold mb-6">Give a title to your journal</h2>
+            <h2 className="text-2xl font-bold mb-6 text-[#FAA41F]">Give a title to your journal</h2>
             <TextField
               fullWidth
               variant="outlined"
@@ -268,6 +305,7 @@ function App() {
               error={!!error && step === 1}
               helperText={step === 1 && error}
               className="max-w-md w-full"
+              sx={{ "& .MuiOutlinedInput-root": { "& fieldset": { borderColor: "#FAA41F" } } }}
             />
             <p className="text-sm text-gray-500 mt-4">
               Note: emoticons are not available for printed books. We are working on it.
@@ -277,7 +315,7 @@ function App() {
       case 2:
         return (
           <div className="flex flex-col items-center justify-center h-full">
-            <h2 className="text-2xl font-bold mb-6">Which countries is it about?</h2>
+            <h2 className="text-2xl font-bold mb-6 text-[#FAA41F]">Which countries is it about?</h2>
             <FormControl fullWidth className="max-w-md w-full">
               <TextField
                 variant="outlined"
@@ -287,18 +325,20 @@ function App() {
                 onKeyDown={handleCountryInput}
                 error={!!error && step === 2}
                 helperText={step === 2 && error}
+                disabled={skipDates}
+                sx={{ "& .MuiOutlinedInput-root": { "& fieldset": { borderColor: "#FAA41F" } } }}
               />
               <div className="mt-4 flex flex-wrap gap-2">
                 {countries.map((country, index) => (
                   <div
                     key={index}
-                    className="bg-gray-200 px-3 py-1 rounded-full flex items-center"
+                    className="bg-[#FAA41F] text-white px-3 py-1 rounded-full flex items-center"
                   >
                     {country}
                     <IconButton
                       size="small"
                       onClick={() => removeCountry(index)}
-                      className="ml-2"
+                      className="ml-2 text-white"
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
@@ -309,7 +349,11 @@ function App() {
                 control={
                   <Checkbox
                     checked={skipDates}
-                    onChange={(e) => setSkipDates(e.target.checked)}
+                    onChange={(e) => {
+                      setSkipDates(e.target.checked);
+                      if (e.target.checked) setCountries([]);
+                    }}
+                    color="primary"
                   />
                 }
                 label="This diary is not about travelling"
@@ -321,19 +365,31 @@ function App() {
       case 3:
         return (
           <div className="flex flex-col items-center justify-center h-full">
-            <h2 className="text-2xl font-bold mb-6">Add your travel dates</h2>
+            <h2 className="text-2xl font-bold mb-6 text-[#FAA41F]">Add your travel dates</h2>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="Start date"
                 value={startDate}
                 onChange={(newValue) => setStartDate(newValue)}
-                slotProps={{ textField: { fullWidth: true, className: "mb-4 max-w-md w-full" } }}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    className: "mb-4 max-w-md w-full",
+                    sx: { "& .MuiOutlinedInput-root": { "& fieldset": { borderColor: "#FAA41F" } } },
+                  },
+                }}
               />
               <DatePicker
                 label="End date"
                 value={endDate}
                 onChange={(newValue) => setEndDate(newValue)}
-                slotProps={{ textField: { fullWidth: true, className: "mb-4 max-w-md w-full" } }}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    className: "mb-4 max-w-md w-full",
+                    sx: { "& .MuiOutlinedInput-root": { "& fieldset": { borderColor: "#FAA41F" } } },
+                  },
+                }}
               />
               {step === 3 && error && <p className="text-red-500 text-sm">{error}</p>}
             </LocalizationProvider>
@@ -342,11 +398,11 @@ function App() {
       case 4:
         return (
           <div className="flex flex-col items-center justify-center h-full">
-            <h2 className="text-2xl font-bold mb-6">Add cover photo</h2>
+            <h2 className="text-2xl font-bold mb-6 text-[#FAA41F]">Add cover photo</h2>
             <p className="text-sm text-gray-500 mb-4 max-w-md w-full text-center">
               Upload a landscape cover photo for your journal.
             </p>
-            <div className="border-2 border-dashed border-orange-300 p-6 text-center rounded-lg max-w-md w-full">
+            <div className="border-2 border-dashed border-[#FAA41F] p-6 text-center rounded-lg max-w-md w-full">
               <input
                 type="file"
                 accept="image/*"
@@ -367,8 +423,8 @@ function App() {
       case 5:
         return (
           <div className="flex flex-col items-center justify-center h-full">
-            <h2 className="text-2xl font-bold mb-6">Book Preview</h2>
-            <div className="bg-orange-700 w-64 h-80 rounded-lg relative overflow-hidden flex items-center justify-center text-white">
+            <h2 className="text-2xl font-bold mb-6 text-[#FAA41F]">Book Preview</h2>
+            <div className="bg-[#FAA41F] w-64 h-80 rounded-lg relative overflow-hidden flex items-center justify-center text-white">
               {coverPhoto ? (
                 <img
                   src={URL.createObjectURL(coverPhoto)}
@@ -388,16 +444,16 @@ function App() {
         );
       case 6:
         return (
-          <div className="min-h-screen bg-gray-100 flex p-6 w-full max-w-6xl mx-auto">
-            <div className="w-80 bg-gray-200 p-6 rounded-l-lg shadow-md h-[calc(100vh-3rem)] overflow-y-auto">
+          <div className="min-h-screen bg-gray-100 flex p-0 w-full">
+            <div className="w-80 bg-gray-200 p-6 pl-0 rounded-l-none shadow-md h-[calc(100vh-3rem)] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Chapters</h2>
+                <h2 className="text-xl font-bold text-[#FAA41F]">Chapters</h2>
                 <IconButton
                   onClick={() => {
                     if (selectedChapterIndex === -1) addChapter();
                     else setSelectedChapterIndex(-1);
                   }}
-                  className="text-gray-700"
+                  className="text-[#FAA41F]"
                 >
                   <AddIcon />
                 </IconButton>
@@ -408,86 +464,109 @@ function App() {
                   key={index}
                   onClick={() => selectChapter(index)}
                   className={`bg-white p-3 rounded-md mb-2 shadow-sm cursor-pointer hover:bg-gray-100 ${
-                    selectedChapterIndex === index ? "border-l-4 border-orange-500" : ""
+                    selectedChapterIndex === index ? "border-l-4 border-[#FAA41F]" : ""
                   }`}
                 >
-                  <p className="font-medium truncate" title={chapter.chapterName || "Untitled Chapter"}>
+                  <p
+                    className="font-medium truncate"
+                    title={chapter.chapterName || "Untitled Chapter"}
+                  >
                     {chapter.chapterName || "Untitled Chapter"}
                   </p>
                   <p className="text-sm text-gray-600">
                     {chapter.images.length} image(s), {chapter.story.length} chars
                   </p>
-                  {chapter.date && (
-                    <p className="text-xs text-gray-500">{dayjs(chapter.date).format("MMM D, YYYY")}</p>
-                  )}
                 </div>
               ))}
             </div>
-
-            <div className="flex-1 bg-gray-100 p-6 rounded-r-lg shadow-inner h-[calc(100vh-3rem)] overflow-y-auto">
-              <h2 className="text-2xl font-bold mb-6">Write Your Story</h2>
-              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <div className="flex-1 flex bg-white rounded-r-lg shadow-md h-[calc(100vh-3rem)] overflow-hidden">
+              <div className="w-1/2 p-8 flex flex-col bg-gray-50 border-r border-gray-200">
+                <h2 className="text-3xl font-bold mb-8 text-[#FAA41F]">Write Your Story</h2>
                 <TextField
                   fullWidth
-                  variant="outlined"
                   label="Chapter Name"
                   value={currentChapter.chapterName}
                   onChange={(e) => handleChapterChange("chapterName", e.target.value)}
-                  className="mb-4"
+                  variant="standard"
+                  InputProps={{ disableUnderline: true }}
+                  sx={{ mb: 6, input: { fontSize: "1.75rem", border: "none" } }}
                 />
                 <TextField
                   fullWidth
-                  variant="outlined"
                   label="Story"
                   value={currentChapter.story}
                   onChange={(e) => handleChapterChange("story", e.target.value)}
+                  variant="standard"
+                  InputProps={{ disableUnderline: true }}
                   multiline
-                  rows={6}
-                  className="mb-4"
+                  rows={12}
+                  sx={{ mb: 6, textarea: { border: "none", fontSize: "1.25rem" } }}
                 />
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DatePicker
-                    label="Date"
-                    value={currentChapter.date}
-                    onChange={(newValue) => handleChapterChange("date", newValue)}
-                    slotProps={{ textField: { fullWidth: true, className: "mb-4" } }}
-                  />
-                </LocalizationProvider>
-                <div className="mb-4">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                    className="mb-2"
-                  />
-                  {error && step === 6 && <p className="text-red-500 text-sm">{error}</p>}
-                  <Grid container spacing={2}>
-                    {currentChapter.images.map((image, index) => (
-                      <Grid item xs={4} key={index} className="relative">
+              </div>
+              <div className="w-1/2 p-8 flex flex-col bg-white">
+                <div className="mb-6 flex justify-between items-center">
+                  <div>
+                    <Button
+                      variant="contained"
+                      component="label"
+                      sx={{
+                        backgroundColor: "#FAA41F",
+                        "&:hover": { backgroundColor: "#e59400" },
+                        fontSize: "1.1rem",
+                        padding: "8px 16px",
+                      }}
+                    >
+                      Upload Images
+                      <input
+                        type="file"
+                        hidden
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                      />
+                    </Button>
+                    <span className="ml-2 text-gray-500 text-sm">(Max 16 images)</span>
+                  </div>
+                  <Button
+                    variant="contained"
+                    onClick={() => setOpenPreview(true)}
+                    disabled={isLoading}
+                    sx={{
+                      backgroundColor: "#FAA41F",
+                      "&:hover": { backgroundColor: "#e59400" },
+                      fontSize: "1.1rem",
+                      padding: "8px 16px",
+                    }}
+                  >
+                    Submit Diary
+                  </Button>
+                </div>
+                <Grid container spacing={3} className="flex-grow">
+                  {currentChapter.images.map((image, index) => (
+                    <Grid item xs={3} key={index}>
+                      <div className="relative">
                         <img
                           src={image.preview || URL.createObjectURL(image.file || image)}
                           alt={`Image ${index + 1}`}
-                          className="w-full h-24 object-cover rounded"
+                          className="w-full h-32 object-cover rounded"
                         />
                         <IconButton
                           onClick={() => removeImage(index)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                          className="absolute top-1 right-1 bg-red-500 text-white hover:bg-red-700"
+                          size="small"
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
+                      </div>
+                    </Grid>
+                  ))}
+                  {currentChapter.images.length < 16 &&
+                    Array.from({ length: 16 - currentChapter.images.length }).map((_, index) => (
+                      <Grid item xs={3} key={`empty-${index}`}>
+                        <div className="w-full h-32 bg-gray-100 rounded-md" />
                       </Grid>
                     ))}
-                  </Grid>
-                </div>
-                <Button
-                  variant="contained"
-                  onClick={() => handleSubmit(true)}
-                  disabled={isLoading}
-                  className="bg-orange-500 text-white rounded-full px-6 py-2 hover:bg-orange-600 mt-4"
-                >
-                  {isLoading ? "Saving..." : "Finish Diary"}
-                </Button>
+                </Grid>
               </div>
             </div>
           </div>
@@ -498,12 +577,10 @@ function App() {
   };
 
   return (
-    
-    <div className="min-h-screen bg-white flex flex-col">
-      <Navbar/>
+    <div className="min-h-screen bg-white flex flex-col mt-20">
+      <Navbar />
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         {renderStepContent()}
-
         {step !== 6 && (
           <div className="w-full max-w-md mt-8 bg-gray-100 p-4 rounded-b-lg flex flex-col items-center">
             <div className="w-full flex items-center justify-between text-sm text-gray-600 mb-4">
@@ -512,22 +589,22 @@ function App() {
             </div>
             <div className="w-full flex items-center space-x-2">
               <div
-                className={`h-2 flex-1 rounded-full ${step >= 1 ? "bg-orange-500" : "bg-gray-300"}`}
+                className={`h-2 flex-1 rounded-full ${step >= 1 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
               />
               <div
-                className={`h-2 flex-1 rounded-full ${step >= 2 ? "bg-orange-500" : "bg-gray-300"}`}
+                className={`h-2 flex-1 rounded-full ${step >= 2 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
               />
               <div
-                className={`h-2 flex-1 rounded-full ${step >= 3 ? "bg-orange-500" : "bg-gray-300"}`}
+                className={`h-2 flex-1 rounded-full ${step >= 3 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
               />
               <div
-                className={`h-2 flex-1 rounded-full ${step >= 4 ? "bg-orange-500" : "bg-gray-300"}`}
+                className={`h-2 flex-1 rounded-full ${step >= 4 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
               />
               <div
-                className={`h-2 flex-1 rounded-full ${step >= 5 ? "bg-orange-500" : "bg-gray-300"}`}
+                className={`h-2 flex-1 rounded-full ${step >= 5 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
               />
               <div
-                className={`h-2 flex-1 rounded-full ${step >= 6 ? "bg-orange-500" : "bg-gray-300"}`}
+                className={`h-2 flex-1 rounded-full ${step >= 6 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
               />
             </div>
             <div className="mt-4 flex justify-between w-full max-w-xs">
@@ -535,7 +612,11 @@ function App() {
                 variant="outlined"
                 onClick={handleBack}
                 disabled={step === 1}
-                className="bg-gray-200 text-gray-700 rounded-full px-6 py-2 hover:bg-gray-300"
+                sx={{
+                  borderColor: "#FAA41F",
+                  color: "#FAA41F",
+                  "&:hover": { borderColor: "#e59400", backgroundColor: "#fff3e0" },
+                }}
               >
                 Back
               </Button>
@@ -543,7 +624,7 @@ function App() {
                 variant="contained"
                 onClick={handleNext}
                 disabled={isLoading}
-                className="bg-gray-200 text-gray-700 rounded-full px-6 py-2 hover:bg-gray-300"
+                sx={{ backgroundColor: "#FAA41F", "&:hover": { backgroundColor: "#e59400" } }}
               >
                 {step === 6 ? "Preview" : "Next"}
               </Button>
@@ -551,55 +632,53 @@ function App() {
           </div>
         )}
       </div>
-
       <footer className="bg-gray-100 p-4 text-sm text-gray-600 text-center">
         <p>
           © 2025 Travel Diaries, All rights reserved -{" "}
-          <a href="#" className="text-orange-500 hover:underline">
+          <a href="#" className="text-[#FAA41F] hover:underline">
             Privacy policy
           </a>{" "}
           -{" "}
-          <a href="#" className="text-orange-500 hover:underline">
+          <a href="#" className="text-[#FAA41F] hover:underline">
             Terms and conditions
           </a>{" "}
           -{" "}
-          <a href="#" className="text-orange-500 hover:underline">
+          <a href="#" className="text-[#FAA41F] hover:underline">
             User terms
           </a>{" "}
           -{" "}
-          <a href="#" className="text-orange-500 hover:underline">
+          <a href="#" className="text-[#FAA41F] hover:underline">
             Frequently Asked Questions
           </a>{" "}
           -{" "}
-          <a href="#" className="text-orange-500 hover:underline">
+          <a href="#" className="text-[#FAA41F] hover:underline">
             Contact us
           </a>
         </p>
         <div className="mt-2 flex justify-center space-x-4">
-          <a href="#" className="text-orange-500 hover:text-orange-700">
+          <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
             <span className="sr-only">Facebook</span>
             <span className="text-xl">f</span>
           </a>
-          <a href="#" className="text-orange-500 hover:text-orange-700">
+          <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
             <span className="sr-only">Pinterest</span>
             <span className="text-xl">p</span>
           </a>
-          <a href="#" className="text-orange-500 hover:text-orange-700">
+          <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
             <span className="sr-only">Twitter</span>
             <span className="text-xl">t</span>
           </a>
-          <a href="#" className="text-orange-500 hover:text-orange-700">
+          <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
             <span className="sr-only">Instagram</span>
             <span className="text-xl">i</span>
           </a>
         </div>
       </footer>
-
       <Dialog open={openPreview} onClose={() => setOpenPreview(false)}>
-        <DialogTitle>Journal Preview</DialogTitle>
+        <DialogTitle sx={{ color: "#FAA41F" }}>Journal Preview</DialogTitle>
         <DialogContent>
           <div className="flex flex-col items-center space-y-4">
-            <div className="bg-orange-700 w-64 h-80 rounded-lg relative overflow-hidden">
+            <div className="bg-[#FAA41F] w-64 h-80 rounded-lg relative overflow-hidden">
               {coverPhoto ? (
                 <img
                   src={URL.createObjectURL(coverPhoto)}
@@ -657,16 +736,24 @@ function App() {
           </div>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenPreview(false)} disabled={isLoading}>
+          <Button
+            onClick={() => setOpenPreview(false)}
+            disabled={isLoading}
+            sx={{ color: "#FAA41F" }}
+          >
             Close
           </Button>
           <Button
-            onClick={() => handleSubmit(false)}
-            color="primary"
+            onClick={handleSubmit}
             disabled={isLoading}
+            sx={{
+              backgroundColor: "#FAA41F",
+              color: "white",
+              "&:hover": { backgroundColor: "#e59400" },
+            }}
             startIcon={isLoading ? <CircularProgress size={20} /> : null}
           >
-            {isLoading ? "Submitting..." : "Submit"}
+            {isLoading ? "Submitting..." : "Submit Diary"}
           </Button>
         </DialogActions>
       </Dialog>

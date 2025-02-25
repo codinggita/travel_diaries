@@ -7,17 +7,10 @@ import {
   Grid,
   CircularProgress,
   Typography,
-  Divider,
-  Select,
-  MenuItem,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaTrash, FaPlus } from "react-icons/fa";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
 import Navbar from "../compo/newNav";
-
 
 function EditJournal() {
   const { journalId } = useParams();
@@ -30,11 +23,9 @@ function EditJournal() {
   const [currentChapter, setCurrentChapter] = useState({
     chapterName: "",
     story: "",
-    date: null,
     images: [],
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [collageFormat, setCollageFormat] = useState("grid"); // Default format
 
   useEffect(() => {
     const fetchJournal = async () => {
@@ -59,15 +50,13 @@ function EditJournal() {
           initialChapters = content.chapters.map((chapter, index) => ({
             chapterName: chapter.chapterName || "",
             story: chapter.story || "",
-            date: chapter.date ? dayjs(chapter.date) : null,
-            images: index === 0 ? allImages : [], // Temporary workaround
+            images: index === 0 ? allImages : [],
           }));
         } else {
           initialChapters = [
             {
               chapterName: content.chapterName || "",
               story: content.story || "",
-              date: content.date ? dayjs(content.date) : null,
               images: allImages,
             },
           ];
@@ -109,7 +98,7 @@ function EditJournal() {
         file,
         preview: URL.createObjectURL(file),
       })),
-    ];
+    ].slice(0, 16); // Limit to 16 images (4x4 grid)
     setCurrentChapter({ ...currentChapter, images: updatedImages });
     if (selectedChapterIndex !== -1) {
       updateChapter(selectedChapterIndex, { images: updatedImages });
@@ -145,11 +134,11 @@ function EditJournal() {
         })),
       };
       setChapters([...chapters, newChapter]);
-      setCurrentChapter({ chapterName: "", story: "", date: null, images: [] });
+      setCurrentChapter({ chapterName: "", story: "", images: [] });
       setSelectedChapterIndex(-1);
     } else {
       setSelectedChapterIndex(-1);
-      setCurrentChapter({ chapterName: "", story: "", date: null, images: [] });
+      setCurrentChapter({ chapterName: "", story: "", images: [] });
     }
     setError("");
   };
@@ -165,7 +154,7 @@ function EditJournal() {
     setSelectedChapterIndex(newIndex);
     setCurrentChapter(
       newIndex === -1
-        ? { chapterName: "", story: "", date: null, images: [] }
+        ? { chapterName: "", story: "", images: [] }
         : { ...updatedChapters[newIndex] }
     );
   };
@@ -180,15 +169,12 @@ function EditJournal() {
     const formData = new FormData();
     formData.append("title", journal?.title || "Untitled");
 
-    // Check if a new chapter is being added
     if (selectedChapterIndex === -1) {
-      // Ensure the new chapter has a valid name and story
       if (!currentChapter.chapterName.trim() || !currentChapter.story.trim()) {
         setError("Chapter name and story are required.");
         setIsSaving(false);
         return;
       }
-      // Add the new chapter to the chapters array
       const newChapter = {
         ...currentChapter,
         images: currentChapter.images.map((image) => ({
@@ -199,17 +185,14 @@ function EditJournal() {
       setChapters([...chapters, newChapter]);
     }
 
-    // Prepare the content object with all chapters
     const content = {
       chapters: chapters.map((chapter) => ({
         chapterName: chapter.chapterName || "",
         story: chapter.story || "",
-        date: chapter.date ? chapter.date.toISOString() : null,
       })),
     };
     formData.append("content", JSON.stringify(content));
 
-    // Append images to the form data
     chapters.forEach((chapter) => {
       const newImages = chapter.images.filter((img) => img.file);
       newImages.forEach((img) => formData.append("images", img.file));
@@ -227,8 +210,6 @@ function EditJournal() {
     } catch (error) {
       console.error("Error updating journal:", error);
       if (error.response) {
-        console.error("Response data:", error.response.data);
-        console.error("Response status:", error.response.status);
         setError(`Error updating journal: ${error.response.status} - ${error.response.data?.error || error.message}`);
       } else {
         setError(`Error updating journal: ${error.message}`);
@@ -241,7 +222,7 @@ function EditJournal() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
-        <CircularProgress />
+        <CircularProgress sx={{ color: "#FAA41F" }} />
       </div>
     );
   }
@@ -255,17 +236,16 @@ function EditJournal() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex p-6">
-      <Navbar/>
-      {/* Left Sidebar */}
+    <div className="min-h-screen mt-20 bg-gray-100 flex p-6">
+      <Navbar />
       <div className="w-80 bg-gray-200 p-6 rounded-l-lg shadow-md h-[calc(100vh-3rem)] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <Typography variant="h6" className="font-bold text-gray-800">
+          <Typography variant="h6" className="font-bold" sx={{ color: "#FAA41F" }}>
             Chapters ({chapters.length})
           </Typography>
           <IconButton
             onClick={addChapter}
-            className="text-gray-700 hover:text-orange-500 transition-colors"
+            sx={{ color: "#FAA41F", "&:hover": { color: "#e59400" } }}
           >
             <FaPlus size={16} />
           </IconButton>
@@ -285,7 +265,7 @@ function EditJournal() {
               key={index}
               onClick={() => selectChapter(index)}
               className={`bg-white px-4 py-3 mb-2 rounded-md shadow-sm cursor-pointer hover:bg-gray-50 transition-colors ${
-                selectedChapterIndex === index ? "ring-2 ring-orange-500" : "ring-1 ring-gray-300"
+                selectedChapterIndex === index ? "ring-2 ring-[#FAA41F]" : "ring-1 ring-gray-300"
               }`}
             >
               <div className="flex justify-between items-center">
@@ -302,18 +282,16 @@ function EditJournal() {
                     className="text-gray-600 mt-1 truncate"
                     title={chapter.story || "No story yet"}
                   >
-                    {chapter.story ? chapter.story.substring(0, 50) + (chapter.story.length > 50 ? "..." : "") : "No story yet"}
+                    {chapter.story
+                      ? chapter.story.substring(0, 50) + (chapter.story.length > 50 ? "..." : "")
+                      : "No story yet"}
                   </Typography>
                   <div className="mt-1 flex items-center space-x-2 text-gray-500 text-sm">
-                    <span>{chapter.images.length} {chapter.images.length === 1 ? "Image" : "Images"}</span>
+                    <span>
+                      {chapter.images.length} {chapter.images.length === 1 ? "Image" : "Images"}
+                    </span>
                     <span>•</span>
                     <span>{chapter.story.length} Chars</span>
-                    {chapter.date && (
-                      <>
-                        <span>•</span>
-                        <span>{dayjs(chapter.date).format("MMM D, YYYY")}</span>
-                      </>
-                    )}
                   </div>
                 </div>
                 <IconButton
@@ -321,7 +299,7 @@ function EditJournal() {
                     e.stopPropagation();
                     deleteChapter(index);
                   }}
-                  className="text-red-500 hover:text-red-700 transition-colors"
+                  sx={{ color: "red", "&:hover": { color: "#b91c1c" } }}
                 >
                   <FaTrash size={12} />
                 </IconButton>
@@ -330,92 +308,97 @@ function EditJournal() {
           ))
         )}
       </div>
-
-      {/* Right Editing Area */}
-      <div className="flex-1 bg-gray-100 p-6 rounded-r-lg shadow-inner h-[calc(100vh-3rem)] overflow-y-auto">
-        <Typography variant="h5" className="font-bold mb-6 text-gray-800">
-          {selectedChapterIndex === -1 ? "New Chapter" : "Edit Chapter"}
-        </Typography>
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+      <div className="flex-1 flex bg-white rounded-r-lg shadow-md h-[calc(100vh-3rem)] overflow-hidden">
+        {/* Left Page: Text Only */}
+        <div className="w-1/2 p-6 flex flex-col bg-gray-50 border-r border-gray-200">
+          <Typography variant="h4" className="mb-6 font-bold" sx={{ color: "#FAA41F" }}>
+            {journal?.title || "Edit Journal"}
+          </Typography>
           <TextField
             fullWidth
-            variant="outlined"
             label="Chapter Name"
-            value={currentChapter.chapterName || ""}
+            value={currentChapter.chapterName}
             onChange={(e) => handleChapterChange("chapterName", e.target.value)}
-            className="mb-4"
+            variant="standard"
+            InputProps={{ disableUnderline: true }}
+            sx={{ mb: 4, input: { fontSize: "1.5rem", border: "none", color: "#FAA41F" } }}
           />
           <TextField
             fullWidth
-            variant="outlined"
             label="Story"
-            value={currentChapter.story || ""}
+            value={currentChapter.story}
             onChange={(e) => handleChapterChange("story", e.target.value)}
+            variant="standard"
+            InputProps={{ disableUnderline: true }}
             multiline
-            rows={6}
-            className="mb-4"
+            rows={10}
+            sx={{ flexGrow: 1, textarea: { border: "none" } }}
           />
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              label="Date"
-              value={currentChapter.date || null}
-              onChange={(newValue) => handleChapterChange("date", newValue)}
-              slotProps={{ textField: { fullWidth: true, className: "mb-4" } }}
-            />
-          </LocalizationProvider>
+        </div>
+        {/* Right Page: 4x4 Photo Grid */}
+        <div className="w-1/2 p-6 flex flex-col bg-white">
           <div className="mb-4">
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageUpload}
-              className="mb-2 text-gray-700"
-            />
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Select
-              value={collageFormat}
-              onChange={(e) => setCollageFormat(e.target.value)}
-              className="mb-4"
+            <Button
+              variant="contained"
+              component="label"
+              sx={{ backgroundColor: "#FAA41F", "&:hover": { backgroundColor: "#e59400" } }}
             >
-              <MenuItem value="grid">Grid</MenuItem>
-              <MenuItem value="row">Row</MenuItem>
-              <MenuItem value="column">Column</MenuItem>
-            </Select>
-            <Grid container spacing={2}>
-              {currentChapter.images.map((image, imgIndex) => (
-                <Grid item xs={collageFormat === "row" ? 12 : collageFormat === "column" ? 4 : 6} key={imgIndex} className="relative">
+              Upload Images
+              <input
+                type="file"
+                hidden
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
+            </Button>
+            <Typography variant="caption" className="ml-2 text-gray-500">
+              (Max 16 images)
+            </Typography>
+          </div>
+          <Grid container spacing={2} className="flex-grow">
+            {currentChapter.images.map((image, index) => (
+              <Grid item xs={3} key={index}>
+                <div className="relative">
                   <img
                     src={image.preview || image.url}
-                    alt={`Image ${imgIndex + 1}`}
-                    className="w-full h-24 object-cover rounded"
+                    alt={`Upload ${index}`}
+                    className="w-full h-24 object-cover rounded-md"
                   />
                   <IconButton
-                    onClick={() => removeImage(imgIndex)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white hover:bg-red-700"
+                    size="small"
                   >
-                    <FaTrash fontSize="small" />
+                    <FaTrash size={10} />
                   </IconButton>
+                </div>
+              </Grid>
+            ))}
+            {currentChapter.images.length < 16 &&
+              Array.from({ length: 16 - currentChapter.images.length }).map((_, index) => (
+                <Grid item xs={3} key={`empty-${index}`}>
+                  <div className="w-full h-24 bg-gray-100 rounded-md" />
                 </Grid>
               ))}
-            </Grid>
+          </Grid>
+          <div className="flex justify-end space-x-4 mt-4">
+            <Button
+              variant="outlined"
+              onClick={() => navigate("/dashboard")}
+              sx={{ borderColor: "#FAA41F", color: "#FAA41F", "&:hover": { borderColor: "#e59400", backgroundColor: "#fff3e0" } }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSave}
+              disabled={isSaving}
+              sx={{ backgroundColor: "#FAA41F", "&:hover": { backgroundColor: "#e59400" } }}
+            >
+              {isSaving ? <CircularProgress size={24} /> : "Save Changes"}
+            </Button>
           </div>
-        </div>
-        <div className="mt-6 flex justify-between">
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/dashboard")}
-            className="bg-gray-200 text-gray-700 rounded-full px-6 py-2 hover:bg-gray-300"
-          >
-            Back to Journals
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-orange-500 text-white rounded-full px-6 py-2 hover:bg-orange-600"
-          >
-            {isSaving ? "Saving..." : "Save Changes"}
-          </Button>
         </div>
       </div>
     </div>

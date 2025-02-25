@@ -5,9 +5,25 @@ import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import multer from "multer";
 import fetch from "node-fetch";
+import admin from "firebase-admin";
 
 // Load environment variables
 dotenv.config();
+
+// Validate Firebase environment variables
+if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_PRIVATE_KEY || !process.env.FIREBASE_CLIENT_EMAIL) {
+  console.error("Missing Firebase environment variables");
+  process.exit(1);
+}
+
+// Initialize Firebase Admin SDK
+admin.initializeApp({
+  credential: admin.credential.cert({
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+  }),
+});
 
 // Initialize MongoDB connection
 const connectMongoDB = async () => {
@@ -79,25 +95,23 @@ const countrySchema = new mongoose.Schema({
 });
 const Country = mongoose.model("Country", countrySchema);
 
-// Function to create and start a server
-const createServer = (port, routesConfig) => {
-  const app = express();
-  app.use(express.json());
-  app.use(cors());
+// Authentication Middleware
+const authenticateToken = async (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Expecting "Bearer <token>"
 
-  // Apply routes
-  routesConfig(app);
+  if (!token) {
+    return res.status(401).json({ error: "Authentication token required" });
+  }
 
-  return new Promise((resolve, reject) => {
-    const server = app.listen(port, "0.0.0.0", () => {
-      console.log(`Server running on port ${port}`);
-      resolve(server);
-    });
-    server.on("error", (err) => {
-      console.error(`Server error on port ${port}:`, err);
-      reject(err);
-    });
-  });
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken; // Attach decoded user info to request
+    next();
+  } catch (error) {
+    console.error("Token verification error:", error);
+    res.status(403).json({ error: "Invalid or expired token" });
+  }
 };
 
 // Define all routes in a single function
@@ -133,12 +147,13 @@ const allRoutes = (app) => {
   });
 
   // Journal Routes (Port 5002)
-  app.post("/api/journals", upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
+  app.post("/api/journals", authenticateToken, upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
     try {
-      const { title, content, username, countries, startDate, endDate } = req.body;
+      const { title, content, countries, startDate, endDate } = req.body;
+      const username = req.user.email;
 
-      if (!title || !content || !username) {
-        return res.status(400).json({ error: "Title, content, and username are required" });
+      if (!title || !content) {
+        return res.status(400).json({ error: "Title and content are required" });
       }
 
       const parsedContent = JSON.parse(content);
@@ -182,21 +197,23 @@ const allRoutes = (app) => {
     }
   });
 
-  app.get("/api/journals", async (req, res) => {
+  app.get("/api/journals", authenticateToken, async (req, res) => {
     try {
-      const journals = await Journal.find();
+      const username = req.user.email;
+      const journals = await Journal.find({ username });
       res.status(200).json(journals);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
-  app.get("/api/journals/:journalId", async (req, res) => {
+  app.get("/api/journals/:journalId", authenticateToken, async (req, res) => {
     try {
       const { journalId } = req.params;
-      const journal = await Journal.findOne({ journalId });
+      const username = req.user.email;
+      const journal = await Journal.findOne({ journalId, username });
       if (!journal) {
-        return res.status(404).json({ error: "Journal not found" });
+        return res.status(404).json({ error: "Journal not found or you don’t have access" });
       }
       res.status(200).json(journal);
     } catch (error) {
@@ -204,20 +221,11 @@ const allRoutes = (app) => {
     }
   });
 
-  app.get("/api/journals/user/:username", async (req, res) => {
-    try {
-      const { username } = req.params;
-      const journals = await Journal.find({ username });
-      res.status(200).json(journals); // Return empty array if no journals found
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  app.put("/api/journals/:journalId", upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
+  app.put("/api/journals/:journalId", authenticateToken, upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
     try {
       const { journalId } = req.params;
       const { title, content } = req.body;
+      const username = req.user.email;
 
       if (!title || !content) {
         return res.status(400).json({ error: "Title and content are required" });
@@ -252,13 +260,13 @@ const allRoutes = (app) => {
       if (coverImage) updates.coverImage = coverImage;
 
       const updatedJournal = await Journal.findOneAndUpdate(
-        { journalId },
+        { journalId, username },
         updates,
         { new: true }
       );
 
       if (!updatedJournal) {
-        return res.status(404).json({ error: "Journal not found" });
+        return res.status(404).json({ error: "Journal not found or you don’t have access" });
       }
       res.status(200).json({ message: "Journal updated successfully", updatedJournal });
     } catch (error) {
@@ -266,12 +274,13 @@ const allRoutes = (app) => {
     }
   });
 
-  app.delete("/api/journals/:journalId", async (req, res) => {
+  app.delete("/api/journals/:journalId", authenticateToken, async (req, res) => {
     try {
       const { journalId } = req.params;
-      const deletedJournal = await Journal.findOneAndDelete({ journalId });
+      const username = req.user.email;
+      const deletedJournal = await Journal.findOneAndDelete({ journalId, username });
       if (!deletedJournal) {
-        return res.status(404).json({ error: "Journal not found" });
+        return res.status(404).json({ error: "Journal not found or you don’t have access" });
       }
       res.status(200).json({ message: "Journal deleted successfully" });
     } catch (error) {
@@ -337,6 +346,27 @@ const allRoutes = (app) => {
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
+  });
+};
+
+// Function to create and start a server
+const createServer = (port, routesConfig) => {
+  const app = express();
+  app.use(express.json());
+  app.use(cors());
+
+  // Apply routes
+  routesConfig(app);
+
+  return new Promise((resolve, reject) => {
+    const server = app.listen(port, "0.0.0.0", () => {
+      console.log(`Server running on port ${port}`);
+      resolve(server);
+    });
+    server.on("error", (err) => {
+      console.error(`Server error on port ${port}:`, err);
+      reject(err);
+    });
   });
 };
 

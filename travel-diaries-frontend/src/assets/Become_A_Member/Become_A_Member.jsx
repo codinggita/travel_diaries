@@ -86,7 +86,7 @@ const ContactSection = () => {
           <Typography variant="body1" className="mb-6">
             Do you have questions, remarks, or feedback about Travel Diaries?
             Please get in touch with us through our contact form or by sending
-            an email to support@traveldiariesapp.com.
+            an email to dev.patel.codinggita@gmail.com
           </Typography>
         </div>
         <form onSubmit={handleSubmit} className="md:w-1/2 flex flex-col space-y-4">
