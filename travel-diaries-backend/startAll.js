@@ -28,9 +28,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Define models
 const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  username: String,
+  email: String,
+  password: String,
   authMethod: String,
   createdAt: { type: Date, default: Date.now },
 });
@@ -38,9 +38,9 @@ const User = mongoose.model("User", userSchema);
 
 const journalSchema = new mongoose.Schema({
   journalId: { type: String, unique: true, default: uuidv4 },
-  title: { type: String, required: true },
-  content: { type: String, required: true }, // Structured JSON containing chapters
-  username: { type: String, required: true, index: true }, // Required and indexed for faster queries
+  title: String,
+  content: String, // Structured JSON containing chapters
+  username: String,
   createdAt: { type: Date, default: Date.now },
   images: [String], // Array for chapter images
   coverImage: { type: String, default: "https://via.placeholder.com/150x200?text=Default+Cover" }, // Separate field for cover image
@@ -126,15 +126,6 @@ const allRoutes = (app) => {
       res.status(500).json({ error: error.message });
     }
   });
-  
-  app.get("/api/register", async (req, res) => {
-    try {
-      const users = await User.find({}, { password: 0 }); // Exclude password field for security
-      res.status(200).json(users);
-    } catch (error) {
-      res.status(500).json({ error: "Error fetching users: " + error.message });
-    }
-  });
 
   // Journal Routes (Port 5002)
   app.post("/api/journals", upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
@@ -166,7 +157,7 @@ const allRoutes = (app) => {
       // Distribute images to chapters
       let imageIndex = 0;
       parsedContent.chapters.forEach(chapter => {
-        const numImages = chapter.images ? chapter.images.length : 0;
+        const numImages = chapter.images ? chapter.images.length : 0; // Number of images expected for this chapter
         chapter.images = chapterImages.slice(imageIndex, imageIndex + numImages);
         imageIndex += numImages;
       });
@@ -176,8 +167,8 @@ const allRoutes = (app) => {
         title,
         content: JSON.stringify(parsedContent),
         username,
-        images: chapterImages,
-        coverImage,
+        images: chapterImages, // Store all chapter images here
+        coverImage, // Store cover image separately
         countries: countries ? JSON.parse(countries) : [],
         startDate: startDate || null,
         endDate: endDate || null,
@@ -222,7 +213,7 @@ const allRoutes = (app) => {
       const journals = await Journal.find({ username });
 
       if (!journals.length) {
-        return res.status(200).json([]); // Return empty array instead of 404
+        return res.status(404).json({ error: "No journals found for this username" });
       }
 
       res.status(200).json(journals);

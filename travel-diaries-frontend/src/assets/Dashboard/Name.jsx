@@ -20,6 +20,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import Navbar from "../compo/newNav";
 
 function App() {
   const [step, setStep] = useState(1);
@@ -497,7 +498,9 @@ function App() {
   };
 
   return (
+    
     <div className="min-h-screen bg-white flex flex-col">
+      <Navbar/>
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         {renderStepContent()}
 

@@ -16,6 +16,8 @@ import { FaTrash, FaPlus } from "react-icons/fa";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import Navbar from "../compo/newNav";
+
 
 function EditJournal() {
   const { journalId } = useParams();
@@ -254,6 +256,7 @@ function EditJournal() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex p-6">
+      <Navbar/>
       {/* Left Sidebar */}
       <div className="w-80 bg-gray-200 p-6 rounded-l-lg shadow-md h-[calc(100vh-3rem)] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
