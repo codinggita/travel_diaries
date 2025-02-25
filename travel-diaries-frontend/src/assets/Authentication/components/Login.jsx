@@ -61,21 +61,22 @@ function Login() {
   };
 
   return (
-    <div className="flex min-h-screen justify-self-center">
-      <div className="w-1/2 flex flex-col items-start justify-center p-12">
-        <img src={logo} alt="Logo" className="mb-6 w-24" />
-        <div className="bg-white p-6 rounded-lg shadow-md w-96">
-          <h2 className="text-2xl font-bold mb-4 text-center">Log In</h2>
-          <form onSubmit={handleEmailSubmit} className="flex flex-col">
+    <div className="flex min-h-screen">
+      {/* Full width on smaller screens, half on larger screens */}
+      <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-4 md:p-12">
+        <img src={logo} alt="Logo" className="mb-6 w-24 md:w-32" />
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow-md w-full max-w-md">
+          <h2 className="text-2xl font-bold mb-4 text-center text-gray-900">Log In</h2>
+          <form onSubmit={handleEmailSubmit} className="flex flex-col space-y-4">
             <input
               type="email"
               placeholder="Email"
-              className="p-2 border rounded mb-2"
+              className="p-2 border rounded w-full"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <div className="relative mb-4">
+            <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
@@ -94,27 +95,29 @@ function Login() {
             </div>
             <button
               type="submit"
-              className="bg-[#FAA41F] cursor-pointer text-white p-2 rounded-3xl mb-4"
+              className="bg-[#FAA41F] text-white p-2 rounded-3xl w-full hover:bg-[#f9a825] transition-colors"
             >
               Log In
             </button>
           </form>
           <button
             onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center bg-[#FAA41F] border border-gray-300 text-gray-700 p-2 rounded-3xl mb-4 hover:bg-[#faa41f]"
+            className="w-full flex items-center justify-center bg-[#FAA41F] border border-gray-300 text-gray-700 p-2 rounded-3xl hover:bg-[#f9a825] transition-colors mt-4"
           >
-            <FaGoogle className="mr-2 text-white " />
+            <FaGoogle className="mr-2 text-white" />
             Sign in with Google
           </button>
           <button
-            className="mt-4 text-[#FAA41F] cursor-pointer"
+            className="mt-4 text-[#FAA41F] text-center w-full"
             onClick={() => navigate("/auth/register")}
           >
             Don't have an account? Register
           </button>
         </div>
       </div>
-      <div className="h-[750px] flex items-center justify-center p-12">
+
+      {/* Hide image on screens smaller than md (768px, which is ~51% of 1500px desktop width) */}
+      <div className="hidden md:flex md:w-1/2 h-[750px] items-center justify-center p-12">
         <img
           src={rightImage}
           alt="Auth Section Image"

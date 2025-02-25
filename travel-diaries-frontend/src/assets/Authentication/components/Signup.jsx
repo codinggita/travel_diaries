@@ -3,8 +3,8 @@ import { auth } from '../Firebase/Firebase';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { toast, ToastContainer } from 'react-toastify'; // Import react-toastify
-import 'react-toastify/dist/ReactToastify.css'; // Import the default CSS for styling
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import logo from '../../LandingPage/Images/travel-diaries-logo-footer.png';
 import rightImage from '../../LandingPage/Images/auth-side.png';
 import { FaGoogle } from 'react-icons/fa';
@@ -32,7 +32,7 @@ function Signup() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       const idToken = await user.getIdToken();
-      localStorage.setItem('idToken', idToken); // Store the token
+      localStorage.setItem('idToken', idToken);
       console.log('ID Token:', idToken);
 
       await registerUserInDB({
@@ -44,7 +44,7 @@ function Signup() {
 
       toast.success("Registration successful!", {
         position: "top-right",
-        autoClose: 3000, // Close after 3 seconds
+        autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -69,7 +69,7 @@ function Signup() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       const idToken = await user.getIdToken();
-      localStorage.setItem('idToken', idToken); // Store the token
+      localStorage.setItem('idToken', idToken);
       console.log('ID Token:', idToken);
 
       await registerUserInDB({
@@ -105,16 +105,16 @@ function Signup() {
   };
 
   return (
-    <div className="flex min-h-screen justify-self-center">
-      <div className="w-1/2 flex flex-col items-start justify-center justify-self-center p-12">
-        <img src={logo} alt="Logo" className="mb-6 w-24" />
-        <div className="bg-white p-6 rounded-lg shadow-md w-96">
-          <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
-          <form onSubmit={handleSubmit} className="flex flex-col">
+    <div className="flex min-h-screen">
+      <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-4 md:p-12">
+        <img src={logo} alt="Logo" className="mb-6 w-24 md:w-32" />
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow-md w-full max-w-md">
+          <h2 className="text-2xl font-bold mb-4 text-center text-gray-900">Register</h2>
+          <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
             <input
               type="text"
               placeholder="Username"
-              className="p-2 border rounded mb-2"
+              className="p-2 border rounded w-full"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -122,7 +122,7 @@ function Signup() {
             <input
               type="email"
               placeholder="Email"
-              className="p-2 border rounded mb-2"
+              className="p-2 border rounded w-full"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -144,13 +144,16 @@ function Signup() {
                 {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
               </button>
             </div>
-            <button type="submit" className="bg-[#FAA41F] cursor-pointer text-white p-2 rounded-3xl mb-4">
+            <button
+              type="submit"
+              className="bg-[#FAA41F] text-white p-2 rounded-3xl w-full hover:bg-[#f9a825] transition-colors mb-4"
+            >
               Sign Up
             </button>
           </form>
           <div
             onClick={handleGoogleSignIn}
-            className="mt-4 flex items-center justify-center bg-[#FAA41F] cursor-pointer text-white p-2 rounded-3xl w-full"
+            className="mt-4 flex items-center justify-center bg-[#FAA41F] text-white p-2 rounded-3xl w-full hover:bg-[#f9a825] transition-colors cursor-pointer"
           >
             <FaGoogle className="w-6 h-6 mr-3" />
             <span>Sign Up with Google</span>
@@ -166,10 +169,15 @@ function Signup() {
           </p>
         </div>
       </div>
-      <div className="h-[750px] flex items-center justify-center p-12">
-        <img src={rightImage} alt="Auth Section Image" className="object-cover w-full h-full" />
+
+      {/* Hide image on screens smaller than md (768px, ~51% of 1500px desktop width) */}
+      <div className="hidden md:flex md:w-1/2 h-[750px] items-center justify-center p-12">
+        <img
+          src={rightImage}
+          alt="Auth Section Image"
+          className="object-cover w-full h-full"
+        />
       </div>
-      {/* Add ToastContainer to render the toast notifications */}
       <ToastContainer />
     </div>
   );

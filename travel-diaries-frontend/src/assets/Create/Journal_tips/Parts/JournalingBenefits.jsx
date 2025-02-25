@@ -6,13 +6,13 @@ const ProxyIframe = () => {
   const [loading, setLoading] = useState(true);
 
   const handleLoad = () => {
-    setLoading(false); // Hide loading state once the iframe content is loaded
+    setLoading(false); // Hide loading state and allow Navbar to render once iframe content is loaded
   };
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col">
-      {/* Navbar */}
-      <Navbar/>
+      {/* Navbar loads only after iframe content is loaded */}
+      {!loading && <Navbar />}
 
       {/* Loading spinner while iframe is loading */}
       {loading && (

@@ -1,8 +1,57 @@
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "../../LandingPage/Parts/Navbar";
-import Footer from "../../LandingPage/Parts/Footer"; 
+import Footer from "../../LandingPage/Parts/Footer";
 
 const TravelPage = () => {
+  // State to track the current chapter
+  const [currentChapter, setCurrentChapter] = useState(1);
+
+  // Simulated chapter data (you can move this to separate files later)
+  const chapters = {
+    1: {
+      title: "Verzamelen op Schiphol",
+      date: "APRIL 15, 2024",
+      location: "SCHIPHOL AIRPORT",
+      content: [
+        "Maandag 15 april is het zover en gaan we samen een prachtige persreis maken naar Tirana, Albanië. Om 15.00 uur verzamelen we op Schiphol bij de Seafood & Winebar Bubbels.",
+        "Vanaf dit voorjaar vliegt Transavia op Tirana in Albanië. Een nieuwe bestemming in het netwerk die ontzettend veel te bieden heeft...",
+        "We zijn met een mooi gezelschap van reismedia en reisorganisaties. Al kletsend met elkaar komen we erachter dat geen van ons al eerder in Albanië is geweest...",
+        "Marcel de Nooijer, CEO van Transavia en onze gastheer op deze reis, brengt een toast uit. We proosten met de zojuist ingeschonken champagne en vertrekken naar onze gate. Op naar Albanië!"
+      ],
+      images: [
+        "https://res-console.cloudinary.com/dsddldquo/thumbnails/v1/image/upload/v1740114957/ZTFjZ2N1eGVuZ3hibmd0djVsbG8=/drilldown",
+        "https://cdn.traveldiariesapp.com/diaries/6154188d-ff65-4cba-bd38-811feed65e90/32cf8ee9-9a48-4b9a-833d-2ea6cd740be7.jpg",
+        "https://cdn.traveldiariesapp.com/diaries/6154188d-ff65-4cba-bd38-811feed65e90/16f940ac-1f56-447d-b872-94bbd7bb4247.jpg"
+      ]
+    },
+    2: {
+      title: "Feestelijke ontvangst",
+      date: "APRIL 15, 2024",
+      location: "TIRANA, ALBANIA",
+      content: [
+        "Na een soepele vlucht landen we in Tirana, de bruisende hoofdstad van Albanië. We worden warm verwelkomd door lokale gidsen.",
+        "Een korte rit brengt ons naar een prachtig plein waar een welkomstdiner op ons wacht. De sfeer is feestelijk en de lokale gerechten zijn overheerlijk.",
+        "We maken kennis met de Albanese cultuur door muziek en dans, terwijl de zon ondergaat achter de bergen."
+      ],
+      images: [
+        "https://res-console.cloudinary.com/dsddldquo/thumbnails/v1/image/upload/v1740115583/cGdrYWJwZ3pxOW5vNW44d3Iyam8=/drilldown",
+        "https://cdn.traveldiariesapp.com/diaries/sample/tirana-welcome.jpg",
+        "https://cdn.traveldiariesapp.com/diaries/sample/albanian-culture.jpg"
+      ]
+    }
+    // Add more chapters as needed
+  };
+
+  // Function to handle "Next Chapter" click
+  const handleNextChapter = () => {
+    if (currentChapter < Object.keys(chapters).length) {
+      setCurrentChapter(currentChapter + 1);
+    }
+  };
+
+  // Current chapter data
+  const chapterData = chapters[currentChapter];
+
   return (
     <div className="w-full">
       {/* Navbar */}
@@ -11,7 +60,7 @@ const TravelPage = () => {
       {/* Hero Section */}
       <div
         className="relative h-screen w-full bg-cover bg-center flex items-center text-white px-6 md:px-16"
-        style={{ backgroundImage: "url('https://res-console.cloudinary.com/dsddldquo/thumbnails/v1/image/upload/v1740115583/cGdrYWJwZ3pxOW5vNW44d3Iyam8=/drilldown')" }}
+        style={{ backgroundImage: `url('${chapters[1].images[0]}')` }} // Static for now, can be dynamic if needed
       >
         <div className="absolute inset-0 bg-black bg-opacity-50"></div> {/* Dark overlay */}
 
@@ -48,42 +97,38 @@ const TravelPage = () => {
       <div className="container mx-auto px-6 md:px-16 py-16 flex flex-col md:flex-row gap-8">
         {/* Article Content */}
         <div className="w-full md:w-2/3">
-          <h2 className="text-4xl font-bold">Verzamelen op Schiphol</h2>
-          <p className="text-gray-500 text-sm mt-2">APRIL 15, 2024 | SCHIPHOL AIRPORT</p>
+          <h2 className="text-4xl font-bold">{chapterData.title}</h2>
+          <p className="text-gray-500 text-sm mt-2">{chapterData.date} | {chapterData.location}</p>
 
-          <p className="mt-6 text-lg">
-            Maandag 15 april is het zover en gaan we samen een prachtige persreis maken naar Tirana, Albanië.
-            Om 15.00 uur verzamelen we op Schiphol bij de Seafood & Winebar Bubbels.
-          </p>
-
-          <p className="mt-4 text-lg">
-            Vanaf dit voorjaar vliegt Transavia op Tirana in Albanië. Een nieuwe bestemming in het netwerk
-            die ontzettend veel te bieden heeft...
-          </p>
-
-          <p className="mt-4 text-lg">
-            We zijn met een mooi gezelschap van reismedia en reisorganisaties. Al kletsend met elkaar komen
-            we erachter dat geen van ons al eerder in Albanië is geweest...
-          </p>
-
-          <p className="mt-4 text-lg">
-            Marcel de Nooijer, CEO van Transavia en onze gastheer op deze reis, brengt een toast uit.
-            We proosten met de zojuist ingeschonken champagne en vertrekken naar onze gate. Op naar Albanië!
-          </p>
+          {chapterData.content.map((paragraph, index) => (
+            <p key={index} className="mt-4 text-lg">
+              {paragraph}
+            </p>
+          ))}
 
           {/* Image Section */}
           <div className="mt-8 flex flex-col space-y-6">
-            <img src="https://res-console.cloudinary.com/dsddldquo/thumbnails/v1/image/upload/v1740114957/ZTFjZ2N1eGVuZ3hibmd0djVsbG8=/drilldown" alt="Schiphol Airport" className="rounded-lg shadow-lg w-full" />
-            <img src="https://cdn.traveldiariesapp.com/diaries/6154188d-ff65-4cba-bd38-811feed65e90/32cf8ee9-9a48-4b9a-833d-2ea6cd740be7.jpg" alt="Champagne at Schiphol" className="rounded-lg shadow-lg w-full" />
-            <img src="https://cdn.traveldiariesapp.com/diaries/6154188d-ff65-4cba-bd38-811feed65e90/16f940ac-1f56-447d-b872-94bbd7bb4247.jpg" alt="Champagne at Schiphol" className="rounded-lg shadow-lg w-full" />
+            {chapterData.images.map((src, index) => (
+              <img
+                key={index}
+                src={src}
+                alt={`${chapterData.title} - Image ${index + 1}`}
+                className="rounded-lg shadow-lg w-full"
+              />
+            ))}
           </div>
 
           {/* "Next Chapter" Button Below Last Image */}
-          <div className="mt-8 flex justify-end">
-            <button className="bg-[#FAA41F] text-white px-6 py-3 rounded-lg shadow-lg hover:bg-[#FDC700] transition">
-              Next Chapter →
-            </button>
-          </div>
+          {currentChapter < Object.keys(chapters).length && (
+            <div className="mt-8 flex justify-end">
+              <button
+                onClick={handleNextChapter}
+                className="bg-[#FAA41F] text-white px-6 py-3 rounded-lg shadow-lg hover:bg-[#FDC700] transition"
+              >
+                Next Chapter →
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Sidebar (Sticky) */}

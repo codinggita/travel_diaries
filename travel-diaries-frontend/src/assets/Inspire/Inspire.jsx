@@ -12,7 +12,7 @@ const diaries = [
     date: "15 t/m 17 april 2024",
     location: "Albania",
     chapters: 7,
-    image: "https://images.pexels.com/photos/7084090/pexels-photo-7084090.jpeg?auto=compress&cs=tinysrgb&w=600",
+    image: "1.avif",
     path: "/inspire/albania",
   },
   {
@@ -76,16 +76,7 @@ const TravelPage = () => {
             our community is here to inspire you!
           </p>
           <div className="relative">
-            <Select
-              displayEmpty
-              className="w-full lg:w-80 border border-black rounded-full bg-white px-4 py-2"
-              defaultValue=""
-            >
-              <MenuItem value="">Search by country</MenuItem>
-              <MenuItem value="USA">India</MenuItem>
-              <MenuItem value="Canada">Canada</MenuItem>
-              <MenuItem value="France">France</MenuItem>
-            </Select>
+            
           </div>
         </div>
 

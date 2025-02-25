@@ -188,7 +188,7 @@ function Dashboard() {
                   </div>
                 )}
                 {journal.title && (
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-80 p-2 rounded text-black text-xl font-bold text-center w-3/4">
+                  <div className="absolute top-6/7 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-80 p-2 rounded text-black text-xl font-bold text-center w-3/4">
                     {journal.title}
                   </div>
                 )}
