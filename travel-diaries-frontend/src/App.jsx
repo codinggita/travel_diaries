@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { auth } from './assets/Authentication/Firebase/Firebase'; // Import your Firebase auth instance
-import { onAuthStateChanged } from 'firebase/auth';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPageSection from "./assets/LandingPage/LandingPageSection";
-import Signup from "./assets/Authentication/components/signup";
-import Login from "./assets/Authentication/components/login";
+import AuthPage from "./assets/Authentication/components/AuthPage";
 import WelcomePage from './assets/Authentication/components/WelcomePage';
 import Explore from "./assets/Export/Export";
 import Inspire from "./assets/Inspire/Inspire";
@@ -19,46 +16,24 @@ import BestTravelApps from './assets/Create/Journal_tips/Parts/BestTravelApps';
 import TravelInspiration from './assets/Export/Details/TravelInspiration';
 import Dashboard from './assets/Dashboard/Dashboard';
 import Name from './assets/Dashboard/Name';
-import Albania from './assets/Inspire/Albania/Albania';
-import Newzealand from './assets/Inspire/Newzealand';
-import Egypt from './assets/Inspire/Egypt';
-import Italy from './assets/Inspire/Italy';
-import Portugal from './assets/Inspire/Portugal';
-import Uk from './assets/Inspire/Uk';
+import Albania from './assets/Inspire/Albania/Albania'
+import Newzealand from './assets/Inspire/Newzealand'
+import Egypt from './assets/Inspire/Egypt'
+import Italy from './assets/Inspire/Italy'
+import Portugal from './assets/Inspire/Portugal'
+import Uk from './assets/Inspire/Uk'
 import Editbook from './assets/Dashboard/editbook';
-import FAQs from './assets/Become_A_Member/Faqs';
+import FAQs from './assets/Become_A_Member/Faqs'
 import EditJournal from './assets/Dashboard/editbook';
 
-// Protected Route Component
-const ProtectedRoute = ({ element, isAuthenticated }) => {
-  return isAuthenticated ? element : <Navigate to="/auth/login" replace />;
-};
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true); // Add loading state to handle auth check
-
-  // Set up Firebase auth listener
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user); // True if user exists, false otherwise
-      setLoading(false); // Auth state resolved
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, []);
-
-  // Render nothing until auth state is determined
-  if (loading) {
-    return <div>Loading...</div>; // Or a proper loading spinner/component
-  }
-
   return (
+    
       <Routes>
         <Route path="/" element={<LandingPageSection />} />
-        <Route path="/auth/register" element={<Signup />} />
-        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/register" element={<AuthPage />} />
+        <Route path="/auth/login" element={<AuthPage />} />
         <Route path="/welcomepage" element={<WelcomePage />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/create" element={<Journal_Tips />} />
@@ -71,36 +46,24 @@ const App = () => {
         <Route path="/create/travel-blog-guide" element={<TravelBlogGuide />} />
         <Route path="/create/best-travel-apps" element={<BestTravelApps />} />
         <Route path="/explore/:location" element={<TravelInspiration />} />
-        
-        {/* Protected Routes */}
-        <Route
-          path="/dashboard"
-          element={<ProtectedRoute element={<Dashboard />} isAuthenticated={isAuthenticated} />}
-        />
-        <Route
-          path="/dashboard/create-diary"
-          element={<ProtectedRoute element={<Name />} isAuthenticated={isAuthenticated} />}
-        />
-        <Route
-          path="/book"
-          element={<ProtectedRoute element={<Editbook />} isAuthenticated={isAuthenticated} />}
-        />
-        <Route
-          path="/edit/:journalId"
-          element={<ProtectedRoute element={<EditJournal />} isAuthenticated={isAuthenticated} />}
-        />
-
-        {/* Public Inspire Routes */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/create-diary" element={<Name />} />
         <Route path="/inspire/albania" element={<Albania />} />
         <Route path="/inspire/newzealand" element={<Newzealand />} />
         <Route path="/inspire/egypt" element={<Egypt />} />
         <Route path="/inspire/italy" element={<Italy />} />
         <Route path="/inspire/portugal" element={<Portugal />} />
         <Route path="/inspire/uk" element={<Uk />} />
-        
+        <Route path="/book" element={<Editbook />} />
         <Route path="/faqs" element={<FAQs />} />
+        <Route path="/edit/:journalId" element={<EditJournal />} />
+
+
+
       </Routes>
-  
+      // <Editbook />
+      // <Fontselect/>
+    
   );
 };
 
