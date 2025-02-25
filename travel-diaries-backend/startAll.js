@@ -5,9 +5,19 @@ import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import multer from "multer";
 import fetch from "node-fetch";
+import admin from "firebase-admin"; // Add Firebase Admin SDK
 
 // Load environment variables
 dotenv.config();
+
+// Initialize Firebase Admin SDK
+admin.initializeApp({
+  credential: admin.credential.cert({
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+  }),
+});
 
 // Initialize MongoDB connection
 const connectMongoDB = async () => {
@@ -39,10 +49,10 @@ const User = mongoose.model("User", userSchema);
 const journalSchema = new mongoose.Schema({
   journalId: { type: String, unique: true, default: uuidv4 },
   title: { type: String, required: true },
-  content: { type: String, required: true }, // Structured JSON containing chapters
+  content: { type: String, required: true },
   username: { type: String, required: true, index: true },
   createdAt: { type: Date, default: Date.now },
-  images: [{ type: String }], // Array for chapter images
+  images: [{ type: String }],
   coverImage: { type: String, default: "https://via.placeholder.com/150x200?text=Default+Cover" },
   countries: [{ type: String }],
   startDate: { type: Date, default: null },
@@ -51,7 +61,7 @@ const journalSchema = new mongoose.Schema({
 const Journal = mongoose.model("Journal", journalSchema);
 
 const countrySchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true }, // Ensure id is unique and required
+  id: { type: String, required: true, unique: true },
   hero: {
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -79,6 +89,24 @@ const countrySchema = new mongoose.Schema({
 });
 const Country = mongoose.model("Country", countrySchema);
 
+// Authentication Middleware
+const authenticateToken = async (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Expecting "Bearer <token>"
+
+  if (!token) {
+    return res.status(401).json({ error: "Authentication token required" });
+  }
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken; // Attach decoded user info to request
+    next();
+  } catch (error) {
+    res.status(403).json({ error: "Invalid or expired token" });
+  }
+};
+
 // Function to create and start a server
 const createServer = (port, routesConfig) => {
   const app = express();
@@ -100,7 +128,7 @@ const createServer = (port, routesConfig) => {
   });
 };
 
-// Define all routes in a single function
+// Define all routes
 const allRoutes = (app) => {
   // Proxy Routes (Port 5000)
   app.get("/proxy", async (req, res) => {
@@ -132,13 +160,14 @@ const allRoutes = (app) => {
     }
   });
 
-  // Journal Routes (Port 5002)
-  app.post("/api/journals", upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
+  // Journal Routes (Port 5002) - Protected with Authentication
+  app.post("/api/journals", authenticateToken, upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
     try {
-      const { title, content, username, countries, startDate, endDate } = req.body;
+      const { title, content, countries, startDate, endDate } = req.body;
+      const username = req.user.email; // Use email from Firebase token as username
 
-      if (!title || !content || !username) {
-        return res.status(400).json({ error: "Title, content, and username are required" });
+      if (!title || !content) {
+        return res.status(400).json({ error: "Title and content are required" });
       }
 
       const parsedContent = JSON.parse(content);
@@ -182,21 +211,23 @@ const allRoutes = (app) => {
     }
   });
 
-  app.get("/api/journals", async (req, res) => {
+  app.get("/api/journals", authenticateToken, async (req, res) => {
     try {
-      const journals = await Journal.find();
+      const username = req.user.email; // Only fetch journals for authenticated user
+      const journals = await Journal.find({ username });
       res.status(200).json(journals);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
-  app.get("/api/journals/:journalId", async (req, res) => {
+  app.get("/api/journals/:journalId", authenticateToken, async (req, res) => {
     try {
       const { journalId } = req.params;
-      const journal = await Journal.findOne({ journalId });
+      const username = req.user.email;
+      const journal = await Journal.findOne({ journalId, username });
       if (!journal) {
-        return res.status(404).json({ error: "Journal not found" });
+        return res.status(404).json({ error: "Journal not found or you don’t have access" });
       }
       res.status(200).json(journal);
     } catch (error) {
@@ -204,20 +235,24 @@ const allRoutes = (app) => {
     }
   });
 
-  app.get("/api/journals/user/:username", async (req, res) => {
+  app.get("/api/journals/user/:username", authenticateToken, async (req, res) => {
     try {
       const { username } = req.params;
+      if (username !== req.user.email) {
+        return res.status(403).json({ error: "You can only access your own journals" });
+      }
       const journals = await Journal.find({ username });
-      res.status(200).json(journals); // Return empty array if no journals found
+      res.status(200).json(journals);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
-  app.put("/api/journals/:journalId", upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
+  app.put("/api/journals/:journalId", authenticateToken, upload.fields([{ name: "coverImage", maxCount: 1 }, { name: "images" }]), async (req, res) => {
     try {
       const { journalId } = req.params;
       const { title, content } = req.body;
+      const username = req.user.email;
 
       if (!title || !content) {
         return res.status(400).json({ error: "Title and content are required" });
@@ -252,13 +287,13 @@ const allRoutes = (app) => {
       if (coverImage) updates.coverImage = coverImage;
 
       const updatedJournal = await Journal.findOneAndUpdate(
-        { journalId },
+        { journalId, username }, // Ensure only the owner can update
         updates,
         { new: true }
       );
 
       if (!updatedJournal) {
-        return res.status(404).json({ error: "Journal not found" });
+        return res.status(404).json({ error: "Journal not found or you don’t have access" });
       }
       res.status(200).json({ message: "Journal updated successfully", updatedJournal });
     } catch (error) {
@@ -266,12 +301,13 @@ const allRoutes = (app) => {
     }
   });
 
-  app.delete("/api/journals/:journalId", async (req, res) => {
+  app.delete("/api/journals/:journalId", authenticateToken, async (req, res) => {
     try {
       const { journalId } = req.params;
-      const deletedJournal = await Journal.findOneAndDelete({ journalId });
+      const username = req.user.email;
+      const deletedJournal = await Journal.findOneAndDelete({ journalId, username });
       if (!deletedJournal) {
-        return res.status(404).json({ error: "Journal not found" });
+        return res.status(404).json({ error: "Journal not found or you don’t have access" });
       }
       res.status(200).json({ message: "Journal deleted successfully" });
     } catch (error) {
@@ -279,7 +315,7 @@ const allRoutes = (app) => {
     }
   });
 
-  // Country Routes (Port 3000)
+  // Country Routes (Port 3000) - No auth required (public data)
   app.get("/api/countries", async (req, res) => {
     try {
       const data = await Country.find();
@@ -340,15 +376,15 @@ const allRoutes = (app) => {
   });
 };
 
-// Start all servers with a single message
+// Start all servers
 const startServers = async () => {
   await connectMongoDB();
 
   const servers = [
-    createServer(5000, allRoutes), // Proxy server
-    createServer(5001, allRoutes), // User server
-    createServer(5002, allRoutes), // Journal server
-    createServer(3000, allRoutes), // Country server
+    createServer(5000, allRoutes),
+    createServer(5001, allRoutes),
+    createServer(5002, allRoutes),
+    createServer(3000, allRoutes),
   ];
 
   try {
