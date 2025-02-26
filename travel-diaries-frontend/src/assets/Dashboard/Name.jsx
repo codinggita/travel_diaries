@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Button,
   TextField,
@@ -12,6 +12,9 @@ import {
   Grid,
   Checkbox,
   FormControlLabel,
+  Select,
+  MenuItem,
+  Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
@@ -23,6 +26,127 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import Navbar from "../compo/newNav";
 import { auth } from "../Authentication/Firebase/Firebase"; // Adjust path as needed
 import { onAuthStateChanged } from "firebase/auth";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import { FaTrash, FaPlus, FaEye, FaUndo, FaRedo, FaAlignLeft, FaAlignCenter, FaAlignRight } from "react-icons/fa";
+import BookIcon from '@mui/icons-material/Book';
+import EditIcon from '@mui/icons-material/Edit';
+
+// Custom Loader Component: Enhanced "Book is Being Written"
+const BookWritingLoader = () => {
+  return (
+    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
+      <div className="book-writer">
+        <BookIcon sx={{ fontSize: 100, color: '#FAA41F' }} className="book" />
+        <div className="book-shadow"></div>
+        <EditIcon sx={{ fontSize: 40, color: '#000000' }} className="pen" />
+        <div className="writing-line"></div>
+      </div>
+      <p className="mt-6 text-[#FAA41F] font-semibold text-xl tracking-wide loading-text">TRAVEL DIARIES</p>
+      <style jsx>{`
+        .book-writer {
+          position: relative;
+          width: 120px;
+          height: 120px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          perspective: 500px; /* Adds 3D depth */
+        }
+        .book {
+          position: absolute;
+          animation: pulseBook 4s infinite ease-in-out;
+        }
+        .book-shadow {
+          position: absolute;
+          top: 90px;
+          left: 10px;
+          width: 100px;
+          height: 10px;
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 50%;
+          filter: blur(4px);
+          animation: shadowPulse 4s infinite ease-in-out;
+        }
+        .pen {
+          position: absolute;
+          top: 40px;
+          left: 20px;
+          animation: scribble 1.2s infinite ease-in-out;
+          z-index: 1;
+        }
+        .writing-line {
+          position: absolute;
+          top: 70px;
+          left: 40px;
+          height: 2px;
+          background: linear-gradient(to right, #000000, transparent); /* Fading ink effect */
+          width: 0;
+          animation: growLine 1.2s infinite ease-in-out;
+        }
+        .loading-text {
+          animation: fadeText 4s infinite ease-in-out;
+        }
+        @keyframes pulseBook {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+        }
+        @keyframes shadowPulse {
+          0%, 100% {
+            transform: scaleX(1);
+            opacity: 0.2;
+          }
+          50% {
+            transform: scaleX(1.1);
+            opacity: 0.3;
+          }
+        }
+        @keyframes scribble {
+          0% {
+            transform: translateX(0) translateY(0) rotate(0deg);
+          }
+          25% {
+            transform: translateX(20px) translateY(-5px) rotate(-15deg);
+          }
+          50% {
+            transform: translateX(40px) translateY(0) rotate(0deg);
+          }
+          75% {
+            transform: translateX(20px) translateY(5px) rotate(10deg);
+          }
+          100% {
+            transform: translateX(0) translateY(0) rotate(0deg);
+          }
+        }
+        @keyframes growLine {
+          0% {
+            width: 0;
+          }
+          50% {
+            width: 40px;
+          }
+          100% {
+            width: 0;
+          }
+        }
+        @keyframes fadeText {
+          0%, 100% {
+            opacity: 0.7;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
 
 function App() {
   const [step, setStep] = useState(1);
@@ -40,36 +164,51 @@ function App() {
     story: "",
     date: null,
     images: [],
+    chapterNameColor: "#000000",
+    storyColor: "#000000",
+    chapterNameAlign: "left",
+    storyAlign: "left",
+    chapterNameSize: "1.5rem",
+    storySize: "1rem",
+    collageLayout: "grid",
   });
   const [openPreview, setOpenPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [user, setUser] = useState(null); // Store authenticated user
+  const [user, setUser] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [initialLoading, setInitialLoading] = useState(true); // New state for initial loading
+  const quillRef = useRef(null);
   const navigate = useNavigate();
 
-  // Axios instance with backend URL
   const api = axios.create({
     baseURL: "https://travel-diaries-t6c5.onrender.com",
   });
 
-  // Track authentication state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
-        navigate("/auth/login"); // Redirect to login if not authenticated
+        navigate("/auth/login");
       }
+      // Set initial loading to false after 4 seconds
+      const timer = setTimeout(() => {
+        setInitialLoading(false);
+      }, 4000); // 4-second delay
+      return () => clearTimeout(timer);
     });
     return () => unsubscribe();
   }, [navigate]);
 
-  // Cleanup for image previews
   useEffect(() => {
     return () => {
       currentChapter.images.forEach((image) => {
         if (image.preview) URL.revokeObjectURL(image.preview);
       });
-      if (coverPhoto) URL.revokeObjectURL(URL.createObjectURL(coverPhoto));
+      if (coverPhoto && typeof coverPhoto !== "string" && coverPhoto instanceof Blob) {
+        URL.revokeObjectURL(URL.createObjectURL(coverPhoto));
+      }
     };
   }, [currentChapter.images, coverPhoto]);
 
@@ -120,6 +259,87 @@ function App() {
     setError("");
   };
 
+  const handleCompleteDiary = async () => {
+    if (!validateStep()) return;
+    if (!user) {
+      setError("Please log in to save your diary.");
+      return;
+    }
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append("title", journalTitle);
+    formData.append("username", user.email);
+
+    const structuredContent = JSON.stringify({
+      chapters: chapters.map((chapter) => ({
+        chapterName: chapter.chapterName,
+        story: chapter.story,
+        date: chapter.date ? chapter.date.toISOString() : null,
+        images: chapter.images.map(() => true),
+        chapterNameColor: chapter.chapterNameColor,
+        storyColor: chapter.storyColor,
+        chapterNameAlign: chapter.chapterNameAlign,
+        storyAlign: chapter.storyAlign,
+        chapterNameSize: chapter.chapterNameSize,
+        storySize: chapter.storySize,
+        collageLayout: chapter.collageLayout,
+      })),
+    });
+    formData.append("content", structuredContent);
+    formData.append("countries", JSON.stringify(countries));
+    if (!skipDates) {
+      formData.append("startDate", startDate ? startDate.toISOString() : "");
+      formData.append("endDate", endDate ? endDate.toISOString() : "");
+    }
+
+    if (coverPhoto && coverPhoto instanceof Blob) {
+      formData.append("coverImage", coverPhoto);
+    }
+
+    chapters.forEach((chapter) => {
+      chapter.images.forEach((image) => {
+        if (image.file) {
+          formData.append("images", image.file);
+        }
+      });
+    });
+
+    try {
+      const token = await user.getIdToken();
+      const response = await api.post("/api/journals", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      toast.success("Your diary is saved!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      setStep(1);
+      resetForm();
+      navigate("/dashboard");
+    } catch (error) {
+      const errorMsg = error.response?.data?.error || error.message;
+      setError(`Failed to create journal: ${errorMsg}`);
+      console.error("Error creating journal:", errorMsg);
+      toast.error(`Failed to save diary: ${errorMsg}`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleCountryInput = (e) => {
     if (e.key === "Enter" && countryInput.trim()) {
       setCountries((prev) => [...prev, countryInput.trim()]);
@@ -156,7 +376,7 @@ function App() {
         file,
         preview: URL.createObjectURL(file),
       })),
-    ].slice(0, 16); // Limit to 16 images (4x4 grid)
+    ].slice(0, 16);
     setCurrentChapter({ ...currentChapter, images: updatedImages });
     if (selectedChapterIndex !== -1) {
       updateChapter(selectedChapterIndex, { images: updatedImages });
@@ -183,6 +403,12 @@ function App() {
     if (selectedChapterIndex !== -1) {
       updateChapter(selectedChapterIndex, { [field]: value });
     }
+    if (field === "story" && step === 6 && !openPreview) {
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(value);
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    }
   };
 
   const updateChapter = (index, updates) => {
@@ -204,16 +430,87 @@ function App() {
         file: image.file || image,
         preview: image.preview || URL.createObjectURL(image),
       })),
+      chapterNameColor: currentChapter.chapterNameColor,
+      storyColor: currentChapter.storyColor,
+      chapterNameAlign: currentChapter.chapterNameAlign,
+      storyAlign: currentChapter.storyAlign,
+      chapterNameSize: currentChapter.chapterNameSize,
+      storySize: currentChapter.storySize,
+      collageLayout: currentChapter.collageLayout,
     };
     setChapters([...chapters, newChapter]);
-    setCurrentChapter({ chapterName: "", story: "", date: null, images: [] });
+    setCurrentChapter({
+      chapterName: "",
+      story: "",
+      date: null,
+      images: [],
+      chapterNameColor: "#000000",
+      storyColor: "#000000",
+      chapterNameAlign: "left",
+      storyAlign: "left",
+      chapterNameSize: "1.5rem",
+      storySize: "1rem",
+      collageLayout: "grid",
+    });
     setSelectedChapterIndex(-1);
+    setHistory([]);
+    setHistoryIndex(-1);
     setError("");
+  };
+
+  const deleteChapter = (index) => {
+    const updatedChapters = chapters.filter((_, i) => i !== index);
+    setChapters(updatedChapters);
+    const newIndex = updatedChapters.length > 0 ? Math.min(selectedChapterIndex, updatedChapters.length - 1) : -1;
+    setSelectedChapterIndex(newIndex);
+    setCurrentChapter(
+      newIndex === -1
+        ? {
+            chapterName: "",
+            story: "",
+            date: null,
+            images: [],
+            chapterNameColor: "#000000",
+            storyColor: "#000000",
+            chapterNameAlign: "left",
+            storyAlign: "left",
+            chapterNameSize: "1.5rem",
+            storySize: "1rem",
+            collageLayout: "grid",
+          }
+        : { ...updatedChapters[newIndex] }
+    );
+    setHistory(newIndex === -1 ? [] : [updatedChapters[newIndex].story]);
+    setHistoryIndex(newIndex === -1 ? -1 : 0);
   };
 
   const selectChapter = (index) => {
     setSelectedChapterIndex(index);
     setCurrentChapter({ ...chapters[index] });
+    setHistory([chapters[index].story]);
+    setHistoryIndex(0);
+  };
+
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setCurrentChapter({ ...currentChapter, story: history[newIndex] });
+      if (selectedChapterIndex !== -1) {
+        updateChapter(selectedChapterIndex, { story: history[newIndex] });
+      }
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setCurrentChapter({ ...currentChapter, story: history[newIndex] });
+      if (selectedChapterIndex !== -1) {
+        updateChapter(selectedChapterIndex, { story: history[newIndex] });
+      }
+    }
   };
 
   const handleSubmit = async () => {
@@ -232,6 +529,13 @@ function App() {
         story: chapter.story,
         date: chapter.date ? chapter.date.toISOString() : null,
         images: chapter.images.map(() => true),
+        chapterNameColor: chapter.chapterNameColor,
+        storyColor: chapter.storyColor,
+        chapterNameAlign: chapter.chapterNameAlign,
+        storyAlign: chapter.storyAlign,
+        chapterNameSize: chapter.chapterNameSize,
+        storySize: chapter.storySize,
+        collageLayout: chapter.collageLayout,
       })),
     });
     formData.append("content", structuredContent);
@@ -241,7 +545,7 @@ function App() {
       formData.append("endDate", endDate ? endDate.toISOString() : "");
     }
 
-    if (coverPhoto) {
+    if (coverPhoto && coverPhoto instanceof Blob) {
       formData.append("coverImage", coverPhoto);
     }
 
@@ -255,18 +559,23 @@ function App() {
 
     try {
       const token = await user.getIdToken();
-      console.log("Submitting with Token:", token);
       const response = await api.post("/api/journals", formData, {
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Journal Created:", response.data);
+      toast.success("Diary saved successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       setOpenPreview(false);
       setStep(1);
       resetForm();
-      alert("Diary saved successfully!");
       navigate("/dashboard");
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.message;
@@ -286,9 +595,143 @@ function App() {
     setEndDate(null);
     setCoverPhoto(null);
     setChapters([]);
-    setCurrentChapter({ chapterName: "", story: "", date: null, images: [] });
+    setCurrentChapter({
+      chapterName: "",
+      story: "",
+      date: null,
+      images: [],
+      chapterNameColor: "#000000",
+      storyColor: "#000000",
+      chapterNameAlign: "left",
+      storyAlign: "left",
+      chapterNameSize: "1.5rem",
+      storySize: "1rem",
+      collageLayout: "grid",
+    });
     setSelectedChapterIndex(-1);
+    setHistory([]);
+    setHistoryIndex(-1);
   };
+
+  const renderImages = () => {
+    switch (currentChapter.collageLayout) {
+      case "grid":
+        return (
+          <Grid container spacing={2} sx={{ overflowY: "auto", maxHeight: "calc(100vh - 16rem)" }}>
+            {currentChapter.images.map((image, index) => (
+              <Grid item xs={3} key={index}>
+                <div className="relative">
+                  <img src={image.preview || image.url} alt={`Upload ${index}`} className="w-full h-24 object-cover rounded-md" />
+                  <IconButton
+                    onClick={() => removeImage(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white"
+                    size="small"
+                  >
+                    <FaTrash size={10} />
+                  </IconButton>
+                </div>
+              </Grid>
+            ))}
+          </Grid>
+        );
+      case "masonry":
+        return (
+          <div className="columns-3 gap-2" style={{ overflowY: "auto", maxHeight: "calc(100vh - 16rem)" }}>
+            {currentChapter.images.map((image, index) => (
+              <div key={index} className="mb-2 break-inside-avoid">
+                <div className="relative">
+                  <img src={image.preview || image.url} alt={`Upload ${index}`} className="w-full object-cover rounded-md" />
+                  <IconButton
+                    onClick={() => removeImage(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white"
+                    size="small"
+                  >
+                    <FaTrash size={10} />
+                  </IconButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      case "stacked":
+        return (
+          <div className="flex flex-col space-y-2" style={{ overflowY: "auto", maxHeight: "calc(100vh - 16rem)" }}>
+            {currentChapter.images.map((image, index) => (
+              <div key={index} className="relative">
+                <img src={image.preview || image.url} alt={`Upload ${index}`} className="w-full h-32 object-cover rounded-md" />
+                <IconButton
+                  onClick={() => removeImage(index)}
+                  className="absolute top-1 right-1 bg-red-500 text-white"
+                  size="small"
+                >
+                  <FaTrash size={10} />
+                </IconButton>
+              </div>
+            ))}
+          </div>
+        );
+      case "two-column":
+        return (
+          <Grid container spacing={2} sx={{ overflowY: "auto", maxHeight: "calc(100vh - 16rem)" }}>
+            {currentChapter.images.map((image, index) => (
+              <Grid item xs={6} key={index}>
+                <div className="relative">
+                  <img src={image.preview || image.url} alt={`Upload ${index}`} className="w-full h-32 object-cover rounded-md" />
+                  <IconButton
+                    onClick={() => removeImage(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white"
+                    size="small"
+                  >
+                    <FaTrash size={10} />
+                  </IconButton>
+                </div>
+              </Grid>
+            ))}
+          </Grid>
+        );
+      case "carousel":
+        return (
+          <div className="flex overflow-x-auto space-x-2" style={{ overflowY: "auto", maxHeight: "calc(100vh - 16rem)" }}>
+            {currentChapter.images.map((image, index) => (
+              <div key={index} className="relative flex-shrink-0 w-48">
+                <img src={image.preview || image.url} alt={`Upload ${index}`} className="w-full h-32 object-cover rounded-md" />
+                <IconButton
+                  onClick={() => removeImage(index)}
+                  className="absolute top-1 right-1 bg-red-500 text-white"
+                  size="small"
+                >
+                  <FaTrash size={10} />
+                </IconButton>
+              </div>
+            ))}
+          </div>
+        );
+      case "diagonal":
+        return (
+          <div className="flex flex-col space-y-2" style={{ overflowY: "auto", maxHeight: "calc(100vh - 16rem)" }}>
+            {currentChapter.images.map((image, index) => (
+              <div key={index} className="relative" style={{ marginLeft: `${index * 20}px` }}>
+                <img src={image.preview || image.url} alt={`Upload ${index}`} className="w-3/4 h-32 object-cover rounded-md" />
+                <IconButton
+                  onClick={() => removeImage(index)}
+                  className="absolute top-1 right-1 bg-red-500 text-white"
+                  size="small"
+                >
+                  <FaTrash size={10} />
+                </IconButton>
+              </div>
+            ))}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Show loader during initial load
+  if (initialLoading) {
+    return <BookWritingLoader />;
+  }
 
   const renderStepContent = () => {
     switch (step) {
@@ -412,7 +855,7 @@ function App() {
               {error && step === 4 && <p className="text-red-500 text-sm">{error}</p>}
               {coverPhoto && (
                 <img
-                  src={URL.createObjectURL(coverPhoto)}
+                  src={typeof coverPhoto === "string" ? coverPhoto : URL.createObjectURL(coverPhoto)}
                   alt="Preview"
                   className="mt-4 max-h-32 mx-auto rounded"
                 />
@@ -427,7 +870,7 @@ function App() {
             <div className="bg-[#FAA41F] w-64 h-80 rounded-lg relative overflow-hidden flex items-center justify-center text-white">
               {coverPhoto ? (
                 <img
-                  src={URL.createObjectURL(coverPhoto)}
+                  src={typeof coverPhoto === "string" ? coverPhoto : URL.createObjectURL(coverPhoto)}
                   alt="Cover Preview"
                   className="w-full h-full object-cover"
                 />
@@ -444,131 +887,256 @@ function App() {
         );
       case 6:
         return (
-          <div className="min-h-screen bg-gray-100 flex p-0 w-full">
-            <div className="w-80 bg-gray-200 p-6 pl-0 rounded-l-none shadow-md h-[calc(100vh-3rem)] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-[#FAA41F]">Chapters</h2>
-                <IconButton
-                  onClick={() => {
-                    if (selectedChapterIndex === -1) addChapter();
-                    else setSelectedChapterIndex(-1);
-                  }}
-                  className="text-[#FAA41F]"
-                >
-                  <AddIcon />
-                </IconButton>
-              </div>
-              {error && step === 6 && <p className="text-red-500 text-sm mb-2">{error}</p>}
-              {chapters.map((chapter, index) => (
-                <div
-                  key={index}
-                  onClick={() => selectChapter(index)}
-                  className={`bg-white p-3 rounded-md mb-2 shadow-sm cursor-pointer hover:bg-gray-100 ${
-                    selectedChapterIndex === index ? "border-l-4 border-[#FAA41F]" : ""
-                  }`}
-                >
-                  <p
-                    className="font-medium truncate"
-                    title={chapter.chapterName || "Untitled Chapter"}
-                  >
-                    {chapter.chapterName || "Untitled Chapter"}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {chapter.images.length} image(s), {chapter.story.length} chars
-                  </p>
+          <div className="min-h-screen bg-gray-100 flex flex-col p-4">
+            <Navbar />
+            {/* Top Header Section */}
+            <div className="w-full bg-white p-4 shadow-md flex flex-col md:flex-row items-center justify-between mb-4 mt-16 space-y-4 md:space-y-0">
+              <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+                <div className="w-24 h-32 bg-gray-200 rounded-md overflow-hidden">
+                  {coverPhoto ? (
+                    <img
+                      src={typeof coverPhoto === "string" ? coverPhoto : URL.createObjectURL(coverPhoto)}
+                      alt="Book Cover"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-500">No Cover</div>
+                  )}
+                  <Button variant="contained" component="label" size="small" sx={{ mt: 1, backgroundColor: "#FAA41F" }}>
+                    Upload Cover
+                    <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                  </Button>
                 </div>
-              ))}
-            </div>
-            <div className="flex-1 flex bg-white rounded-r-lg shadow-md h-[calc(100vh-3rem)] overflow-hidden">
-              <div className="w-1/2 p-8 flex flex-col bg-gray-50 border-r border-gray-200">
-                <h2 className="text-3xl font-bold mb-8 text-[#FAA41F]">Write Your Story</h2>
-                <TextField
-                  fullWidth
-                  label="Chapter Name"
-                  value={currentChapter.chapterName}
-                  onChange={(e) => handleChapterChange("chapterName", e.target.value)}
-                  variant="standard"
-                  InputProps={{ disableUnderline: true }}
-                  sx={{ mb: 6, input: { fontSize: "1.75rem", border: "none" } }}
-                />
-                <TextField
-                  fullWidth
-                  label="Story"
-                  value={currentChapter.story}
-                  onChange={(e) => handleChapterChange("story", e.target.value)}
-                  variant="standard"
-                  InputProps={{ disableUnderline: true }}
-                  multiline
-                  rows={12}
-                  sx={{ mb: 6, textarea: { border: "none", fontSize: "1.25rem" } }}
-                />
+                <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                  {journalTitle || "Untitled"}
+                </Typography>
               </div>
-              <div className="w-1/2 p-8 flex flex-col bg-white">
-                <div className="mb-6 flex justify-between items-center">
-                  <div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <IconButton onClick={handleUndo} disabled={historyIndex <= 0} sx={{ color: "#FAA41F" }}>
+                  <FaUndo />
+                </IconButton>
+                <IconButton onClick={handleRedo} disabled={historyIndex >= history.length - 1} sx={{ color: "#FAA41F" }}>
+                  <FaRedo />
+                </IconButton>
+                <IconButton onClick={() => handleChapterChange("chapterNameAlign", "left")} sx={{ color: "#FAA41F" }}>
+                  <FaAlignLeft />
+                </IconButton>
+                <IconButton onClick={() => handleChapterChange("chapterNameAlign", "center")} sx={{ color: "#FAA41F" }}>
+                  <FaAlignCenter />
+                </IconButton>
+                <IconButton onClick={() => handleChapterChange("chapterNameAlign", "right")} sx={{ color: "#FAA41F" }}>
+                  <FaAlignRight />
+                </IconButton>
+                <Select
+                  value={currentChapter.chapterNameSize}
+                  onChange={(e) => handleChapterChange("chapterNameSize", e.target.value)}
+                  size="small"
+                >
+                  {["1rem", "1.25rem", "1.5rem", "2rem"].map((size) => (
+                    <MenuItem key={size} value={size}>{size}</MenuItem>
+                  ))}
+                </Select>
+                <input
+                  type="color"
+                  value={currentChapter.chapterNameColor}
+                  onChange={(e) => handleChapterChange("chapterNameColor", e.target.value)}
+                  title="Change Chapter Name Color"
+                  className="w-8 h-8"
+                />
+                <input
+                  type="color"
+                  value={currentChapter.storyColor}
+                  onChange={(e) => handleChapterChange("storyColor", e.target.value)}
+                  title="Change Story Text Color"
+                  className="w-8 h-8"
+                />
+                <Select
+                  value={currentChapter.storySize}
+                  onChange={(e) => handleChapterChange("storySize", e.target.value)}
+                  size="small"
+                >
+                  {["0.8rem", "1rem", "1.2rem", "1.5rem"].map((size) => (
+                    <MenuItem key={size} value={size}>{size}</MenuItem>
+                  ))}
+                </Select>
+                <Select
+                  value={currentChapter.collageLayout}
+                  onChange={(e) => handleChapterChange("collageLayout", e.target.value)}
+                  size="small"
+                  renderValue={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
+                >
+                  <MenuItem value="grid">
+                    <div className="flex items-center">
+                      <div className="grid grid-cols-2 gap-1 mr-2">
+                        <div className="w-3 h-3 bg-gray-400"></div>
+                        <div className="w-3 h-3 bg-gray-400"></div>
+                        <div className="w-3 h-3 bg-gray-400"></div>
+                        <div className="w-3 h-3 bg-gray-400"></div>
+                      </div>
+                      Grid
+                    </div>
+                  </MenuItem>
+                  <MenuItem value="masonry">
+                    <div className="flex items-center">
+                      <div className="flex flex-col gap-1 mr-2">
+                        <div className="w-4 h-6 bg-gray-400"></div>
+                        <div className="w-4 h-4 bg-gray-400"></div>
+                        <div className="w-4 h-5 bg-gray-400"></div>
+                      </div>
+                      Masonry
+                    </div>
+                  </MenuItem>
+                  <MenuItem value="stacked">
+                    <div className="flex items-center">
+                      <div className="flex flex-col gap-1 mr-2">
+                        <div className="w-6 h-2 bg-gray-400"></div>
+                        <div className="w-6 h-2 bg-gray-400"></div>
+                        <div className="w-6 h-2 bg-gray-400"></div>
+                      </div>
+                      Stacked
+                    </div>
+                  </MenuItem>
+                  <MenuItem value="two-column">
+                    <div className="flex items-center">
+                      <div className="flex gap-1 mr-2">
+                        <div className="w-3 h-6 bg-gray-400"></div>
+                        <div className="w-3 h-6 bg-gray-400"></div>
+                      </div>
+                      Two-Column
+                    </div>
+                  </MenuItem>
+                  <MenuItem value="carousel">
+                    <div className="flex items-center">
+                      <div className="flex gap-1 mr-2">
+                        <div className="w-4 h-4 bg-gray-400"></div>
+                        <div className="w-4 h-4 bg-gray-400 border-2 border-gray-600"></div>
+                        <div className="w-4 h-4 bg-gray-400"></div>
+                      </div>
+                      Carousel
+                    </div>
+                  </MenuItem>
+                  <MenuItem value="diagonal">
+                    <div className="flex items-center">
+                      <div className="flex flex-col mr-2" style={{ transform: "rotate(-15deg)" }}>
+                        <div className="w-4 h-2 bg-gray-400 mb-1"></div>
+                        <div className="w-4 h-2 bg-gray-400 ml-2 mb-1"></div>
+                        <div className="w-4 h-2 bg-gray-400 ml-4"></div>
+                      </div>
+                      Diagonal
+                    </div>
+                  </MenuItem>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex flex-1 w-full">
+              {/* Chapter List - Hidden on small screens */}
+              <div className="hidden md:block w-80 bg-gray-200 p-4 rounded-l-lg shadow-md h-[calc(100vh-12rem)] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <Typography variant="h6" sx={{ color: "#FAA41F" }}>
+                    Chapters ({chapters.length})
+                  </Typography>
+                  <IconButton onClick={addChapter} sx={{ color: "#FAA41F" }}>
+                    <FaPlus size={16} />
+                  </IconButton>
+                </div>
+                {error && step === 6 && <p className="text-red-500 text-sm mb-2">{error}</p>}
+                {chapters.map((chapter, index) => (
+                  <div
+                    key={index}
+                    onClick={() => selectChapter(index)}
+                    className={`bg-white px-4 py-3 mb-2 rounded-md shadow-sm cursor-pointer ${
+                      selectedChapterIndex === index ? "ring-2 ring-[#FAA41F]" : "ring-1 ring-gray-300"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <Typography variant="subtitle2" className="font-semibold">
+                        {chapter.chapterName || "Untitled Chapter"}
+                      </Typography>
+                      <IconButton
+                        onClick={(e) => { e.stopPropagation(); deleteChapter(index); }}
+                        sx={{ color: "red" }}
+                      >
+                        <FaTrash size={12} />
+                      </IconButton>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Main Editing Area */}
+              <div className="flex-1 w-full bg-white rounded-r-lg md:rounded-l-lg shadow-md h-[calc(100vh-12rem)] overflow-hidden flex flex-col md:flex-row">
+                <div className="w-full md:w-1/2 p-6 flex flex-col bg-gray-50 border-r border-gray-200">
+                  <TextField
+                    fullWidth
+                    label="Chapter Name"
+                    value={currentChapter.chapterName}
+                    onChange={(e) => handleChapterChange("chapterName", e.target.value)}
+                    variant="standard"
+                    sx={{
+                      mb: 2,
+                      input: {
+                        fontSize: currentChapter.chapterNameSize,
+                        color: currentChapter.chapterNameColor,
+                        textAlign: currentChapter.chapterNameAlign,
+                      },
+                    }}
+                  />
+                  <ReactQuill
+                    ref={quillRef}
+                    value={currentChapter.story}
+                    onChange={(value) => handleChapterChange("story", value)}
+                    theme="snow"
+                    style={{ flexGrow: 1, color: currentChapter.storyColor, fontSize: currentChapter.storySize }}
+                  />
+                </div>
+                {/* Image Upload and Display - Hidden on small screens */}
+                <div className="hidden md:block w-1/2 p-6 flex flex-col bg-white">
+                  <div className="flex justify-between mb-4">
                     <Button
                       variant="contained"
                       component="label"
-                      sx={{
-                        backgroundColor: "#FAA41F",
-                        "&:hover": { backgroundColor: "#e59400" },
-                        fontSize: "1.1rem",
-                        padding: "8px 16px",
-                      }}
+                      sx={{ backgroundColor: "#FAA41F", "&:hover": { backgroundColor: "#e59400" } }}
                     >
                       Upload Images
-                      <input
-                        type="file"
-                        hidden
-                        multiple
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                      />
+                      <input type="file" hidden multiple accept="image/*" onChange={handleImageUpload} />
                     </Button>
-                    <span className="ml-2 text-gray-500 text-sm">(Max 16 images)</span>
+                    <IconButton onClick={() => setOpenPreview(true)} sx={{ color: "#FAA41F" }}>
+                      <FaEye size={20} />
+                    </IconButton>
                   </div>
-                  <Button
-                    variant="contained"
-                    onClick={() => setOpenPreview(true)}
-                    disabled={isLoading}
-                    sx={{
-                      backgroundColor: "#FAA41F",
-                      "&:hover": { backgroundColor: "#e59400" },
-                      fontSize: "1.1rem",
-                      padding: "8px 16px",
-                    }}
-                  >
-                    Submit Diary
-                  </Button>
+                  <div className="flex-grow overflow-y-auto" style={{ maxHeight: "calc(100vh - 16rem)" }}>
+                    {renderImages()}
+                  </div>
+                  <div className="flex justify-end space-x-4 mt-4">
+                    <Button
+                      variant="outlined"
+                      onClick={handleBack}
+                      sx={{ borderColor: "#FAA41F", color: "#FAA41F" }}
+                    >
+                      Back
+                    </Button>
+                    {/* <Button
+                      variant="contained"
+                      onClick={handleNext}
+                      disabled={isLoading}
+                      sx={{ backgroundColor: "#FAA41F" }}
+                    >
+                      Preview
+                    </Button> */}
+                    <Button
+                      variant="contained"
+                      onClick={handleCompleteDiary}
+                      disabled={isLoading}
+                      sx={{ backgroundColor: "#FAA41F", "&:hover": { backgroundColor: "#e59400" } }}
+                    >
+                      {isLoading ? <CircularProgress size={24} /> : "Complete Diary"}
+                    </Button>
+                  </div>
                 </div>
-                <Grid container spacing={3} className="flex-grow">
-                  {currentChapter.images.map((image, index) => (
-                    <Grid item xs={3} key={index}>
-                      <div className="relative">
-                        <img
-                          src={image.preview || URL.createObjectURL(image.file || image)}
-                          alt={`Image ${index + 1}`}
-                          className="w-full h-32 object-cover rounded"
-                        />
-                        <IconButton
-                          onClick={() => removeImage(index)}
-                          className="absolute top-1 right-1 bg-red-500 text-white hover:bg-red-700"
-                          size="small"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </div>
-                    </Grid>
-                  ))}
-                  {currentChapter.images.length < 16 &&
-                    Array.from({ length: 16 - currentChapter.images.length }).map((_, index) => (
-                      <Grid item xs={3} key={`empty-${index}`}>
-                        <div className="w-full h-32 bg-gray-100 rounded-md" />
-                      </Grid>
-                    ))}
-                </Grid>
               </div>
             </div>
+            <ToastContainer />
           </div>
         );
       default:
@@ -577,46 +1145,30 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col mt-20">
-      <Navbar />
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
-        {renderStepContent()}
-        {step !== 6 && (
+    <div className="min-h-screen bg-white flex flex-col">
+      {step !== 6 && <Navbar />}
+      {step !== 6 ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-6">
+          {renderStepContent()}
           <div className="w-full max-w-md mt-8 bg-gray-100 p-4 rounded-b-lg flex flex-col items-center">
             <div className="w-full flex items-center justify-between text-sm text-gray-600 mb-4">
               <span>{step} of 6</span>
               <span>Create journal</span>
             </div>
             <div className="w-full flex items-center space-x-2">
-              <div
-                className={`h-2 flex-1 rounded-full ${step >= 1 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
-              />
-              <div
-                className={`h-2 flex-1 rounded-full ${step >= 2 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
-              />
-              <div
-                className={`h-2 flex-1 rounded-full ${step >= 3 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
-              />
-              <div
-                className={`h-2 flex-1 rounded-full ${step >= 4 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
-              />
-              <div
-                className={`h-2 flex-1 rounded-full ${step >= 5 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
-              />
-              <div
-                className={`h-2 flex-1 rounded-full ${step >= 6 ? "bg-[#FAA41F]" : "bg-gray-300"}`}
-              />
+              <div className={`h-2 flex-1 rounded-full ${step >= 1 ? "bg-[#FAA41F]" : "bg-gray-300"}`} />
+              <div className={`h-2 flex-1 rounded-full ${step >= 2 ? "bg-[#FAA41F]" : "bg-gray-300"}`} />
+              <div className={`h-2 flex-1 rounded-full ${step >= 3 ? "bg-[#FAA41F]" : "bg-gray-300"}`} />
+              <div className={`h-2 flex-1 rounded-full ${step >= 4 ? "bg-[#FAA41F]" : "bg-gray-300"}`} />
+              <div className={`h-2 flex-1 rounded-full ${step >= 5 ? "bg-[#FAA41F]" : "bg-gray-300"}`} />
+              <div className={`h-2 flex-1 rounded-full ${step >= 6 ? "bg-[#FAA41F]" : "bg-gray-300"}`} />
             </div>
             <div className="mt-4 flex justify-between w-full max-w-xs">
               <Button
                 variant="outlined"
                 onClick={handleBack}
                 disabled={step === 1}
-                sx={{
-                  borderColor: "#FAA41F",
-                  color: "#FAA41F",
-                  "&:hover": { borderColor: "#e59400", backgroundColor: "#fff3e0" },
-                }}
+                sx={{ borderColor: "#FAA41F", color: "#FAA41F", "&:hover": { borderColor: "#e59400", backgroundColor: "#fff3e0" } }}
               >
                 Back
               </Button>
@@ -630,50 +1182,54 @@ function App() {
               </Button>
             </div>
           </div>
-        )}
-      </div>
-      <footer className="bg-gray-100 p-4 text-sm text-gray-600 text-center">
-        <p>
-          © 2025 Travel Diaries, All rights reserved -{" "}
-          <a href="#" className="text-[#FAA41F] hover:underline">
-            Privacy policy
-          </a>{" "}
-          -{" "}
-          <a href="#" className="text-[#FAA41F] hover:underline">
-            Terms and conditions
-          </a>{" "}
-          -{" "}
-          <a href="#" className="text-[#FAA41F] hover:underline">
-            User terms
-          </a>{" "}
-          -{" "}
-          <a href="#" className="text-[#FAA41F] hover:underline">
-            Frequently Asked Questions
-          </a>{" "}
-          -{" "}
-          <a href="#" className="text-[#FAA41F] hover:underline">
-            Contact us
-          </a>
-        </p>
-        <div className="mt-2 flex justify-center space-x-4">
-          <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
-            <span className="sr-only">Facebook</span>
-            <span className="text-xl">f</span>
-          </a>
-          <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
-            <span className="sr-only">Pinterest</span>
-            <span className="text-xl">p</span>
-          </a>
-          <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
-            <span className="sr-only">Twitter</span>
-            <span className="text-xl">t</span>
-          </a>
-          <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
-            <span className="sr-only">Instagram</span>
-            <span className="text-xl">i</span>
-          </a>
         </div>
-      </footer>
+      ) : (
+        renderStepContent()
+      )}
+      {step !== 6 && (
+        <footer className="bg-gray-100 p-4 text-sm text-gray-600 text-center">
+          <p>
+            © 2025 Travel Diaries, All rights reserved -{" "}
+            <a href="#" className="text-[#FAA41F] hover:underline">
+              Privacy policy
+            </a>{" "}
+            -{" "}
+            <a href="#" className="text-[#FAA41F] hover:underline">
+              Terms and conditions
+            </a>{" "}
+            -{" "}
+            <a href="#" className="text-[#FAA41F] hover:underline">
+              User terms
+            </a>{" "}
+            -{" "}
+            <a href="#" className="text-[#FAA41F] hover:underline">
+              Frequently Asked Questions
+            </a>{" "}
+            -{" "}
+            <a href="#" className="text-[#FAA41F] hover:underline">
+              Contact us
+            </a>
+          </p>
+          <div className="mt-2 flex justify-center space-x-4">
+            <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
+              <span className="sr-only">Facebook</span>
+              <span className="text-xl">f</span>
+            </a>
+            <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
+              <span className="sr-only">Pinterest</span>
+              <span className="text-xl">p</span>
+            </a>
+            <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
+              <span className="sr-only">Twitter</span>
+              <span className="text-xl">t</span>
+            </a>
+            <a href="#" className="text-[#FAA41F] hover:text-[#e59400]">
+              <span className="sr-only">Instagram</span>
+              <span className="text-xl">i</span>
+            </a>
+          </div>
+        </footer>
+      )}
       <Dialog open={openPreview} onClose={() => setOpenPreview(false)}>
         <DialogTitle sx={{ color: "#FAA41F" }}>Journal Preview</DialogTitle>
         <DialogContent>
@@ -681,7 +1237,7 @@ function App() {
             <div className="bg-[#FAA41F] w-64 h-80 rounded-lg relative overflow-hidden">
               {coverPhoto ? (
                 <img
-                  src={URL.createObjectURL(coverPhoto)}
+                  src={typeof coverPhoto === "string" ? coverPhoto : URL.createObjectURL(coverPhoto)}
                   alt="Final Cover Preview"
                   className="w-full h-full object-cover"
                 />
@@ -715,21 +1271,18 @@ function App() {
                 <p>
                   <strong>Chapter {index + 1}:</strong> {chapter.chapterName}
                 </p>
-                <p>{chapter.story}</p>
+                <div
+                  style={{
+                    color: chapter.storyColor,
+                    fontSize: chapter.storySize,
+                    textAlign: chapter.storyAlign,
+                  }}
+                  dangerouslySetInnerHTML={{ __html: chapter.story }}
+                />
                 <p>
                   <strong>Images:</strong>
                 </p>
-                <Grid container spacing={2}>
-                  {chapter.images.map((image, imgIndex) => (
-                    <Grid item xs={4} key={imgIndex}>
-                      <img
-                        src={image.preview}
-                        alt={`Chapter ${index + 1} Image ${imgIndex + 1}`}
-                        className="w-full h-24 object-cover rounded"
-                      />
-                    </Grid>
-                  ))}
-                </Grid>
+                {renderImagesPreview(chapter.images, chapter.collageLayout)}
               </div>
             ))}
             {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -759,6 +1312,97 @@ function App() {
       </Dialog>
     </div>
   );
+
+  function renderImagesPreview(images, collageLayout) {
+    switch (collageLayout) {
+      case "grid":
+        return (
+          <Grid container spacing={1}>
+            {images.map((image, imgIndex) => (
+              <Grid item xs={4} key={imgIndex}>
+                <img
+                  src={image.preview}
+                  alt={`Chapter Image ${imgIndex + 1}`}
+                  className="w-full h-24 object-cover rounded"
+                />
+              </Grid>
+            ))}
+          </Grid>
+        );
+      case "masonry":
+        return (
+          <div className="columns-2 sm:columns-3 gap-2">
+            {images.map((image, imgIndex) => (
+              <div key={imgIndex} className="mb-2 break-inside-avoid">
+                <img
+                  src={image.preview}
+                  alt={`Chapter Image ${imgIndex + 1}`}
+                  className="w-full object-cover rounded-md"
+                />
+              </div>
+            ))}
+          </div>
+        );
+      case "stacked":
+        return (
+          <div className="flex flex-col space-y-2">
+            {images.map((image, imgIndex) => (
+              <div key={imgIndex}>
+                <img
+                  src={image.preview}
+                  alt={`Chapter Image ${imgIndex + 1}`}
+                  className="w-full h-24 object-cover rounded-md"
+                />
+              </div>
+            ))}
+          </div>
+        );
+      case "two-column":
+        return (
+          <Grid container spacing={1}>
+            {images.map((image, imgIndex) => (
+              <Grid item xs={6} key={imgIndex}>
+                <img
+                  src={image.preview}
+                  alt={`Chapter Image ${imgIndex + 1}`}
+                  className="w-full h-24 object-cover rounded-md"
+                />
+              </Grid>
+            ))}
+          </Grid>
+        );
+      case "carousel":
+        return (
+          <div className="flex overflow-x-auto space-x-2">
+            {images.map((image, imgIndex) => (
+              <div key={imgIndex} className="relative flex-shrink-0 w-40">
+                <img
+                  src={image.preview}
+                  alt={`Chapter Image ${imgIndex + 1}`}
+                  className="w-full h-24 object-cover rounded-md"
+                />
+              </div>
+            ))}
+          </div>
+        );
+      case "diagonal":
+        return (
+          <div className="flex flex-col space-y-2">
+            {images.map((image, imgIndex) => (
+              <div key={imgIndex} className="relative" style={{ marginLeft: `${imgIndex * 20}px` }}>
+                <img
+                  src={image.preview}
+                  alt={`Chapter Image ${imgIndex + 1}`}
+                  className="w-3/4 h-24 object-cover rounded-md"
+                />
+              </div>
+            ))}
+          </div>
+        );
+      default:
+        return null;
+    }
+  }
 }
 
 export default App;

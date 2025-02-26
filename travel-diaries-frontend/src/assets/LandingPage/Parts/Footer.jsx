@@ -26,12 +26,12 @@ const Footer = () => {
         <div>
           <h3 className="font-bold text-gray-800 mb-4">Travel guides</h3>
           <ul className="space-y-2 text-gray-600 cursor-pointer">
-            <li>Africa</li>
-            <li>Asia</li>
-            <li>Europe</li>
-            <li>North America</li>
-            <li>Oceania</li>
-            <li>South America</li>
+            <li>Delhi</li>
+            <li>Kerala</li>
+            <li>West Bengal</li>
+            <li>Gujarat</li>
+            <li>Goa</li>
+            <li>Maharashtra</li>
           </ul>
         </div>
 
