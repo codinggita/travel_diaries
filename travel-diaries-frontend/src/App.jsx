@@ -27,10 +27,10 @@ import Egypt from './assets/Inspire/Egypt';
 import Italy from './assets/Inspire/Italy';
 import Portugal from './assets/Inspire/Portugal';
 import Uk from './assets/Inspire/Uk';
-import Editbook from './assets/Dashboard/editbook';
+import EditJournal from './assets/Dashboard/editbook'; // Assuming EditJournal and Editbook are the same
 import FAQs from './assets/Become_A_Member/Faqs';
-import EditJournal from './assets/Dashboard/editbook';
 import Settings from './assets/Dashboard/Setting';
+import NotFoundPage from './assets/NotFoundPage'; // Import the new 404 component
 
 // Custom Loader Component: Enhanced "Book is Being Written"
 const BookWritingLoader = () => {
@@ -64,7 +64,7 @@ const BookWritingLoader = () => {
           width: 100px;
           height: 10px;
           background: rgba(0, 0, 0, 0.2);
-          border-radius: 50%;
+          borderRadius: 50%;
           filter: blur(4px);
           animation: shadowPulse 4s infinite ease-in-out;
         }
@@ -156,8 +156,8 @@ const RouteTransition = ({ children, isAuthenticated }) => {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [authResolved, setAuthResolved] = useState(false);
+  const [prevLocation, setPrevLocation] = useState(null);
 
-  // Initial auth check with 4-second minimum delay
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       console.log("Auth state changed - User:", user);
@@ -168,7 +168,7 @@ const RouteTransition = ({ children, isAuthenticated }) => {
       if (authResolved) {
         setLoading(false);
       }
-    }, 4000); // 4000ms = 4 seconds
+    }, 4000);
 
     return () => {
       unsubscribe();
@@ -176,15 +176,23 @@ const RouteTransition = ({ children, isAuthenticated }) => {
     };
   }, [authResolved]);
 
-  // Trigger loading on route change
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 4000); // 4 seconds delay on every route change
+    const isFromRegisterToLogin = 
+      prevLocation === "/auth/register" && location.pathname === "/auth/login";
+    
+    if (!isFromRegisterToLogin) {
+      setLoading(true);
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 4000);
 
-    return () => clearTimeout(timer);
-  }, [location.pathname]); // Re-run on route change
+      return () => clearTimeout(timer);
+    } else {
+      setLoading(false);
+    }
+
+    setPrevLocation(location.pathname);
+  }, [location.pathname, prevLocation]);
 
   if (loading || !authResolved) {
     return <BookWritingLoader />;
@@ -222,7 +230,6 @@ const App = () => {
         <Route path="/create/best-travel-apps" element={<BestTravelApps />} />
         <Route path="/explore/:location" element={<TravelInspiration />} />
         <Route path="/dashboard/settings" element={<Settings />} />
-
         <Route
           path="/dashboard"
           element={<ProtectedRoute element={<Dashboard />} isAuthenticated={isAuthenticated} />}
@@ -239,13 +246,15 @@ const App = () => {
         <Route path="/inspire/uk" element={<Uk />} />
         <Route
           path="/book"
-          element={<ProtectedRoute element={<Editbook />} isAuthenticated={isAuthenticated} />}
+          element={<ProtectedRoute element={<EditJournal />} isAuthenticated={isAuthenticated} />}
         />
         <Route path="/faqs" element={<FAQs />} />
         <Route
           path="/edit/:journalId"
           element={<ProtectedRoute element={<EditJournal />} isAuthenticated={isAuthenticated} />}
         />
+        {/* 404 Fallback Route */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </RouteTransition>
   );
