@@ -135,15 +135,15 @@ const ProxyIframe = () => {
 
       {/* Iframe Section */}
       <div className="flex-1 mt-16 relative overflow-hidden">
-        <div className="absolute top-[-100px] left-0 w-full h-full"> {/* Adjust -100px to hide more or less */}
+        <div className="absolute top-[-100px] left-0 w-full h-full">
           <iframe
-            src={`https://travel-diaries-t6c5.onrender.com/proxy?url=${encodeURIComponent(url)}`}
+            src={`https://travel-diaries-m1e7.onrender.com/proxy?url=${encodeURIComponent(url)}`}
             width="100%"
-            height="1000px"  // Set height larger to push content up
+            height="1000px"
             className="border-0 shadow-none rounded-none"
             title="Proxied Page"
-            onLoad={handleLoad} // Fires when the iframe content is fully loaded
-            style={{ border: "none", position: "relative", top: "-20px" }} // Moves iframe content up
+            onLoad={handleLoad}
+            style={{ border: "none", position: "relative", top: "-20px" }}
           ></iframe>
         </div>
       </div>

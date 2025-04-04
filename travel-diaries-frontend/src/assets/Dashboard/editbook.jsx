@@ -172,7 +172,7 @@ function EditJournal() {
           return;
         }
         const response = await axios.get(
-          `https://travel-diaries-t6c5.onrender.com/api/journals/${journalId}`,
+          `https://travel-diaries-m1e7.onrender.com/api/journals/${journalId}`,
           { headers: { Authorization: `Bearer ${token}` }, timeout: 10000 }
         );
         const journalData = response.data;
@@ -446,7 +446,7 @@ function EditJournal() {
         return;
       }
       const response = await axios.put(
-        `https://travel-diaries-t6c5.onrender.com/api/journals/${journalId}`,
+        `https://travel-diaries-m1e7.onrender.com/api/journals/${journalId}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` }, timeout: 10000 }
       );
