@@ -16,7 +16,7 @@ const ContactSection = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("https://travel-diaries-t6c5.onrender.com/api/contact", formData);
+      await axios.post("https://travel-diaries-m1e7.onrender.com/api/contact", formData);
       alert("Message sent successfully!");
       setFormData({ name: "", email: "", message: "" });
     } catch (error) {

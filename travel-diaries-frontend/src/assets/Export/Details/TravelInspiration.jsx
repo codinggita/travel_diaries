@@ -140,7 +140,7 @@ export default function TravelInspiration() {
 
     const fetchLocation = async () => {
       try {
-        const response = await fetch(`https://travel-diaries-t6c5.onrender.com/api/countries/${locationId}`);
+        const response = await fetch(`https://travel-diaries-m1e7.onrender.com/api/countries/${locationId}`);
         const data = await response.json();
         setLocation(data);
       } catch (error) {

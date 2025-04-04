@@ -183,7 +183,7 @@ function App() {
   const navigate = useNavigate();
 
   const api = axios.create({
-    baseURL: "https://travel-diaries-t6c5.onrender.com",
+    baseURL: "https://travel-diaries-m1e7.onrender.com",
   });
 
   useEffect(() => {

@@ -20,7 +20,7 @@ function Signup() {
 
   const registerUserInDB = async (userData) => {
     try {
-      await axios.post("http://localhost:5000/api/register", userData);
+      await axios.post("https://travel-diaries-m1e7.onrender.com/api/register", userData);
     } catch (error) {
       console.error("Error saving user:", error);
     }
