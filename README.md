@@ -1,4 +1,4 @@
-# travel_diaries
+# Travel Diaries
 
 ## Problem Statement:
 ** Many travelers face difficulties in storing and documenting their travel stories and experiences in a structured and easily accessible way.**
@@ -46,6 +46,6 @@ With Travel Diaries, travelers no longer have to worry about losing their precio
 
 ## API Documents link: https://documenter.getpostman.com/view/39216487/2sAYQghTn7
 
-## Deployment Link: https://travel-diaries-ojgb.onrender.com
-## Deployment Link: https://travel-diaries-journal.onrender.com
+## UI Deployment Link: https://roammemoirs.netlify.app/
+## Backend Deployment Link: https://travel-diaries-m1e7.onrender.com
 
